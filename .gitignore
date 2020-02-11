@@ -52,3 +52,6 @@ stamp-h1
 # Compiled binaries
 src/trilearn_coach
 src/trilearn_player
+
+# Doxygen stuff
+html
