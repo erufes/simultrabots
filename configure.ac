@@ -1,8 +1,9 @@
-AC_PREREQ(2.57)
-AC_INIT(trilearn__base_sources, 3.3, jellekok@science.uva.nl) 
+AC_PREREQ(2.69)
+AC_INIT([erus_sim_iron_2020], 1.0) 
 AC_CONFIG_SRCDIR(src/main.cpp)
-AM_INIT_AUTOMAKE(trilearn_base_sources,3.3)
+AM_INIT_AUTOMAKE
 AC_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIRS([m4])
 
 #check for programs
 AC_PROG_CC

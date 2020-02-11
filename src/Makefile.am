@@ -1,7 +1,7 @@
 ## Makefile.am for pursuit server
 
 ## define the program that has to be built and the related sources
-bin_PROGRAMS = trilearn_player trilearn_coach 
+bin_PROGRAMS = erus_player erus_coach 
 
 SOURCES =         Connection.cpp \
         SenseHandler.cpp \
@@ -33,7 +33,7 @@ SOURCES =         Connection.cpp \
         Parse.h \
         Logger.h 
 
-trilearn_player_SOURCES = ${SOURCES}    \
+erus_player_SOURCES = ${SOURCES}    \
         BasicPlayer.cpp \
         Player.cpp \
         PlayerTeams.cpp \
@@ -41,7 +41,7 @@ trilearn_player_SOURCES = ${SOURCES}    \
         BasicPlayer.h \
         Player.h 
 
-trilearn_coach_SOURCES = ${SOURCES} \
+erus_coach_SOURCES = ${SOURCES} \
         BasicCoach.cpp \
         BasicCoach.h \
         mainCoach.cpp 

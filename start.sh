@@ -19,10 +19,10 @@
 
 set wait  = 0
 set host  = "localhost"
-set team  = "UFABCRobotics" 
+set team  = "ERUS" 
 set dir   = "src"
-set prog  = "${dir}/trilearn_player"
-set coach = "${dir}/trilearn_coach"
+set prog  = "${dir}/erus_player"
+set coach = "${dir}/erus_coach"
 set pconf = "${dir}/player.conf"
 set fconf = "${dir}/formations.conf"
 

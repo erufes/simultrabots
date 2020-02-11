@@ -16,3 +16,6 @@ CLEANFILES=doc/html/*
 
 ## to make sure make doc will always call doxygen rule
 .PHONY: doc
+
+## Suggested by compiler
+ACLOCAL_AMFLAGS = -I m4
