@@ -1,0 +1,60 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+src/.deps
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Automake stuff
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+compile
+config.h
+config.h.in
+config.log
+config.status
+configure
+libtool
+ltmain.sh
+src/Makefile
+src/Makefile.in
+stamp-h1
+
+# Compiled binaries
+src/trilearn_coach
+src/trilearn_player
+
+# Doxygen stuff
+doc/html
+
+# Logs
+logs
