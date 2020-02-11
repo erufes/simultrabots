@@ -48,10 +48,16 @@ ltmain.sh
 src/Makefile
 src/Makefile.in
 stamp-h1
+config.guess
+config.sub
+depcomp
+m4
+missing
+install-sh
 
 # Compiled binaries
-src/trilearn_coach
-src/trilearn_player
+src/erus_coach
+src/erus_player
 
 # Doxygen stuff
 doc/html
