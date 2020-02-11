@@ -54,4 +54,7 @@ src/trilearn_coach
 src/trilearn_player
 
 # Doxygen stuff
-html
+doc/html
+
+# Logs
+logs
