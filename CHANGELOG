@@ -1,15 +1,20 @@
 #################################################
-10/08/2009 by PET Eng Comp (www.inf.ufes.br/~pet):
+11/02/2020 by ERUS (http://www.erus.ufes.br/):
+- Updated the project structure for 2020
+- Further changes are documented on the repository commit log at https://github.com/erufes/simultrabots
+
+#################################################
+10/08/2009 by PET Eng Comp (https://pet.inf.ufes.br/):
 - Fixed a bug in tackle
 - Fixed a bug when it is run on Ubuntu 9.04
 
 #################################################
-07/22/2009 by PET Eng Comp (www.inf.ufes.br/~pet):
+07/22/2009 by PET Eng Comp (https://pet.inf.ufes.br/):
 - Fixed small bug in stamina capacity
 - Removed unused variable in function moveToPos2
 
 #################################################
-Updated to version 13 by PET Eng Comp (www.inf.ufes.br/~pet):
+Updated to version 13 by PET Eng Comp (https://pet.inf.ufes.br/):
 - Changed default version of the coach - mainCoach.cpp
 - Changed default version of the player - main.cpp
 - Changed general parameters - ServerSettings.cpp
@@ -30,7 +35,7 @@ General Changes by PET EngComp
 
 
 #################################################
-Updated to version 12 by PET Eng Comp (www.inf.ufes.br/~pet):
+Updated to version 12 by PET Eng Comp (https://pet.inf.ufes.br/):
 
 - Changed default version of the coach - mainCoach.cpp
 - Changed default version of the player - main.cpp
