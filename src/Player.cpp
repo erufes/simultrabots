@@ -104,6 +104,8 @@ Player::Player( ActHandler* act, WorldModel *wm, ServerSettings *ss,
   
 }
 
+bool dbg_hasSaidDummyBehaviour = false;
+
 /*! This is the main loop of the agent. This method calls the update methods
     of the world model after it is indicated that new information has arrived.
     After this, the correct main loop of the player type is called, which
@@ -152,7 +154,11 @@ void Player::mainLoop( )
           case PT_ILLEGAL:
           default: break;
         }
-
+        if(strcmp(WM->getTeamName(), "dummy_test") == 0) {
+            if (!dbg_hasSaidDummyBehaviour) printf("dummy behaviour triggered!\n");
+            dbg_hasSaidDummyBehaviour = true;
+          soc = dummyBehaviour();
+        }
         if( shallISaySomething(soc) == true )           // shall I communicate
         {
           m_timeLastSay = WM->getCurrentTime();

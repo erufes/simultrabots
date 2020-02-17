@@ -169,6 +169,11 @@ SoccerCommand Player::deMeer5(  )
   return soc;
 }
 
+SoccerCommand Player::dummyBehaviour() {
+    SoccerCommand soc(CMD_MOVE);
+    return soc;
+}
+
 /*!This method is a simple goalie based on the goalie of the simple Team of
    FC Portugal. It defines a rectangle in its penalty area and moves to the
    position on this rectangle where the ball intersects if you make a line

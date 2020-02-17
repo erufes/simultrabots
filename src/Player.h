@@ -117,6 +117,9 @@ public:
   // simple teams (PlayerTeams.cpp)
   SoccerCommand deMeer5                   (                                  );
   SoccerCommand deMeer5_goalie            (                                  );
+
+  // dummy teams for debuging
+  SoccerCommand dummyBehaviour            (                                  );
   
 
 };
