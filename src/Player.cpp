@@ -139,9 +139,38 @@ void Player::mainLoop() {
             else if (WM->getPlayMode() == PM_FROZEN)
                 ACT->putCommandInQueue(turnBodyToObject(OBJECT_BALL));
             else {
-                bool isDummyTeam = strcmp(WM->getTeamName(), "dummy_test") == 0;
-                if (isDummyTeam) {
-                    soc = dummyBehaviour();
+                // Debug settings: set the team name to something containing:
+                // _dbg_ to enable
+                // _p_ to position players
+                // _g_ to enable goalie behaviour
+                // _d_ to enable defender behaviour
+                // _m_ to enable midfield behaviour
+                // _a_ to enable attacking behaviour
+                // for instance, for a positioned team with working goalie, set the name to something like _dbg_p_g_
+                if (((string) WM->getTeamName()).find("_dbg_") != std::string::npos) {
+                    soc = CMD_ILLEGAL;
+                    if (((string) WM->getTeamName()).find("_p_") != std::string::npos) {
+                        soc = dummyBehaviour();
+                    }
+                    if (((string) WM->getTeamName()).find("_g_") != std::string::npos)
+                        if (formations->getPlayerType() == PT_GOALKEEPER)
+                            soc = goalieMainLoop();
+                    if (((string) WM->getTeamName()).find("_d_") != std::string::npos) {
+                        if (formations->getPlayerType() == PT_DEFENDER_CENTRAL ||
+                            formations->getPlayerType() == PT_DEFENDER_SWEEPER ||
+                            formations->getPlayerType() == PT_DEFENDER_WING)
+                            soc = defenderMainLoop();
+                    }
+                    if (((string) WM->getTeamName()).find("_m_") != std::string::npos) {
+                        if (formations->getPlayerType() == PT_MIDFIELDER_CENTER ||
+                            formations->getPlayerType() == PT_MIDFIELDER_WING)
+                            soc = midfielderMainLoop();
+                    }
+                    if (((string) WM->getTeamName()).find("_a_") != std::string::npos) {
+                        if (formations->getPlayerType() == PT_ATTACKER ||
+                            formations->getPlayerType() == PT_ATTACKER_WING)
+                            soc = attackerMainLoop();
+                    }
                 } else {
                     switch (formations->getPlayerType())        // determine right loop
                     {
@@ -166,11 +195,6 @@ void Player::mainLoop() {
                             break;
                     }
                 }
-//                if (strcmp(WM->getTeamName(), "dummy_test") == 0) {
-//                    if (!dbg_hasSaidDummyBehaviour) printf("dummy behaviour triggered!\n");
-//                    dbg_hasSaidDummyBehaviour = true;
-//                    soc = dummyBehaviour();
-//                }
                 if (shallISaySomething(soc) == true)           // shall I communicate
                 {
                     m_timeLastSay = WM->getCurrentTime();

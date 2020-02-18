@@ -99,7 +99,10 @@ SoccerCommand Player::deMeer5() {
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
         } else if (WM->isBallKickable())                    // if kickable
         {
+            // can we freely kick to enemy goal?
+            // if so, will there be any enemy players in the way?
 
+            // if not, can we pass the ball to someone else?
             VecPosition posGoal(PITCH_LENGTH / 2.0,
                                 (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
 
