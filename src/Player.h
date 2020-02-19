@@ -121,6 +121,8 @@ public:
   // dummy teams for debuging
   SoccerCommand dummyBehaviour            (                                  );
   
+  SoccerCommand erus_attacker             (                                  );
+
 
 };
 
