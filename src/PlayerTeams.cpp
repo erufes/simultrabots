@@ -53,7 +53,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    2000. The players do the following:
    - if ball is kickable
        kick ball to goal (random corner of goal)
-   - else if i am fastest player to ball 
+   - else if i am fastest player to ball
        intercept the ball
    - else
        move to strategic position based on your home position and pos ball */
@@ -64,7 +64,7 @@ SoccerCommand Player::deMeer5(  )
   VecPosition   posAgent = WM->getAgentGlobalPosition();
   VecPosition   posBall  = WM->getBallPos();
   int           iTmp;
-  
+
   if( WM->isBeforeKickOff( ) )
   {
     if( WM->isKickOffUs( ) && WM->getPlayerNumber() == 9 ) // 9 takes kick
@@ -72,22 +72,22 @@ SoccerCommand Player::deMeer5(  )
       if( WM->isBallKickable() )
       {
         VecPosition posGoal( PITCH_LENGTH/2.0,
-                             (-1 + 2*(WM->getCurrentCycle()%2)) * 
+                             (-1 + 2*(WM->getCurrentCycle()%2)) *
                              0.4 * SS->getGoalWidth() );
         soc = kickTo( posGoal, SS->getBallSpeedMax() ); // kick maximal
-        Log.log( 100, "take kick off" );        
+        Log.log( 100, "take kick off" );
       }
       else
       {
         soc = intercept( false );
         Log.log( 100, "move to ball to take kick-off" );
-      }  
+      }
       ACT->putCommandInQueue( soc );
       ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
       return soc;
-    }  
+    }
     if( formations->getFormation() != FT_INITIAL || // not in kickoff formation
-        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )  
+        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )
     {
       formations->setFormation( FT_INITIAL );       // go to kick_off formation
       ACT->putCommandInQueue( soc=teleportToPos( WM->getStrategicPosition() ));
@@ -102,7 +102,7 @@ SoccerCommand Player::deMeer5(  )
   {
     formations->setFormation( FT_433_OFFENSIVE );
     soc.commandType = CMD_ILLEGAL;
-	  
+
     if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
     {
       ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
@@ -110,11 +110,11 @@ SoccerCommand Player::deMeer5(  )
     }
     else if( WM->isBallKickable())                    // if kickable
     {
-		
+
 		VecPosition posGoal( PITCH_LENGTH/2.0,
 							(-1 + 2*(WM->getCurrentCycle()%2)) * 0.4 * SS->getGoalWidth() );
-			
-		
+
+
 		soc = kickTo( posGoal, SS->getBallSpeedMax() ); // kick maxima
       ACT->putCommandInQueue( soc );
       ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
@@ -169,6 +169,130 @@ SoccerCommand Player::deMeer5(  )
   return soc;
 }
 
+SoccerCommand Player::mayke(  )
+{
+
+  SoccerCommand soc(CMD_ILLEGAL);
+  VecPosition   posAgent = WM->getAgentGlobalPosition();
+  VecPosition   posBall  = WM->getBallPos();
+  int           iTmp;
+  int           i;
+
+  ObjectT       prox = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
+  ObjectT       prox2 = WM->getSecondClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
+  ObjectT       enemy = WM->getClosestInSetTo( OBJECT_SET_OPPONENTS,OBJECT_TEAMMATE_UNKNOWN,NULL,-1.0);
+  ObjectT       anterior;
+
+  VecPosition   pos = WM->getGlobalPosition(prox);
+  VecPosition   pos2 = WM->getGlobalPosition(prox2);
+
+  if( WM->isBeforeKickOff( ) )
+  {
+    if( WM->isKickOffUs( ) && WM->getPlayerNumber() == 9 ) // 9 takes kick
+    {
+      if(  WM->isBallInOurPossesion())
+      {
+          i=0;
+      }
+      else
+      {
+        soc = intercept( false );
+        Log.log( 100, "move to ball to take kick-off" );
+      }
+      ACT->putCommandInQueue( soc );
+      ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+      return soc;
+    }
+    if( formations->getFormation() != FT_INITIAL || // not in kickoff formation
+        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )
+    {
+      formations->setFormation( FT_INITIAL );       // go to kick_off formation
+      ACT->putCommandInQueue( soc=teleportToPos( WM->getStrategicPosition() ));
+    }
+    else                                            // else turn to center
+    {
+      ACT->putCommandInQueue( soc=turnBodyToPoint( VecPosition( 0, 0 ), 0 ) );
+      ACT->putCommandInQueue( alignNeckWithBody( ) );
+    }
+  }
+  else
+  {
+    formations->setFormation( FT_433_OFFENSIVE );
+    soc.commandType = CMD_ILLEGAL;
+
+    if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
+    {
+      ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
+      ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
+    }
+    else if( WM->isBallInOurPossesion())
+    {
+      if(i==0){
+          anterior=prox;
+      }
+      if(i==0 || anterior!=prox)
+      soc = directPass(pos, PASS_NORMAL);
+      else
+      {
+          soc = directPass(pos2, PASS_NORMAL);
+          i=0;
+      }
+      i++;
+      ACT->putCommandInQueue( soc );
+      ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+    }
+    else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
+              == WM->getAgentObjectType()  && !WM->isDeadBallThem() )
+    {                                                // if fastest to ball
+      Log.log( 100, "I am fastest to ball; can get there in %d cycles", iTmp );
+      soc = intercept( false );                      // intercept the ball
+
+      if( soc.commandType == CMD_DASH &&             // if stamina low
+          WM->getAgentStamina().getStamina() <
+             SS->getRecoverDecThr()*SS->getStaminaMax()+200 )
+      {
+        soc.dPower = 30.0 * WM->getAgentStamina().getRecovery(); // dash slow
+        ACT->putCommandInQueue( soc );
+        ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+      }
+      else                                           // if stamina high
+      {
+        ACT->putCommandInQueue( soc );               // dash as intended
+        ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+      }
+     }
+     else if( posAgent.getDistanceTo(WM->getStrategicPosition()) >
+                  1.5 + fabs(posAgent.getX()-posBall.getX())/15.0)
+                                                  // if not near strategic pos
+     {
+       if( WM->getAgentStamina().getStamina() >     // if stamina high
+                            SS->getRecoverDecThr()*SS->getStaminaMax()+800 )
+       {
+         soc = moveToPos(WM->getStrategicPosition(),
+                         PS->getPlayerWhenToTurnAngle());
+         ACT->putCommandInQueue( soc );            // move to strategic pos
+         ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+       }
+       else                                        // else watch ball
+       {
+         ACT->putCommandInQueue( soc = turnBodyToObject( OBJECT_BALL ) );
+         ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+       }
+     }
+     else if( fabs( WM->getRelativeAngle( OBJECT_BALL ) ) > 1.0 ) // watch ball
+     {
+       ACT->putCommandInQueue( soc = turnBodyToObject( OBJECT_BALL ) );
+       ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+     }
+     else
+     {
+        soc = mark(enemy, 0.5, MARK_BALL );                    // nothing to do
+       ACT->putCommandInQueue( soc);
+     }
+   }
+  return soc;
+}
+
 /*!This method is a simple goalie based on the goalie of the simple Team of
    FC Portugal. It defines a rectangle in its penalty area and moves to the
    position on this rectangle where the ball intersects if you make a line
@@ -200,7 +324,7 @@ SoccerCommand Player::deMeer5_goalie(  )
   if( WM->isBeforeKickOff( ) )
   {
     if( formations->getFormation() != FT_INITIAL || // not in kickoff formation
-        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )  
+        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )
     {
       formations->setFormation( FT_INITIAL );       // go to kick_off formation
       ACT->putCommandInQueue( soc=teleportToPos(WM->getStrategicPosition()) );
@@ -219,7 +343,7 @@ SoccerCommand Player::deMeer5_goalie(  )
     ACT->putCommandInQueue( alignNeckWithBody( ) );
   }
   else if( WM->getPlayMode() == PM_PLAY_ON || WM->isFreeKickThem() ||
-           WM->isCornerKickThem() )               
+           WM->isCornerKickThem() )
   {
     if( WM->isBallCatchable() )
     {
@@ -228,12 +352,12 @@ SoccerCommand Player::deMeer5_goalie(  )
     }
      else if( WM->isBallKickable() )
     {
-       soc = kickTo( VecPosition(0,posAgent.getY()*2.0), 2.0 );    
+       soc = kickTo( VecPosition(0,posAgent.getY()*2.0), 2.0 );
        ACT->putCommandInQueue( soc );
        ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
     }
     else if( WM->isInOwnPenaltyArea( getInterceptionPointBall( &i, true ) ) &&
-             WM->getFastestInSetTo( OBJECT_SET_PLAYERS, OBJECT_BALL, &i ) == 
+             WM->getFastestInSetTo( OBJECT_SET_PLAYERS, OBJECT_BALL, &i ) ==
                                                WM->getAgentObjectType() )
     {
       ACT->putCommandInQueue( soc = intercept( true ) );
@@ -258,7 +382,7 @@ SoccerCommand Player::deMeer5_goalie(  )
 
       if( posIntersect.getX() < -49.0 )
         posIntersect.setX( -49.0 );
-        
+
       // and move to this position
       if( posIntersect.getDistanceTo( WM->getAgentGlobalPosition() ) > 0.5 )
       {
@@ -280,9 +404,9 @@ SoccerCommand Player::deMeer5_goalie(  )
       if( WM->getTimeSinceLastCatch() == 25 && WM->isFreeKickUs() )
       {
         // move to position with lesser opponents.
-        if( WM->getNrInSetInCircle( OBJECT_SET_OPPONENTS, 
+        if( WM->getNrInSetInCircle( OBJECT_SET_OPPONENTS,
                                           Circle(posRightTop, 15.0 )) <
-            WM->getNrInSetInCircle( OBJECT_SET_OPPONENTS, 
+            WM->getNrInSetInCircle( OBJECT_SET_OPPONENTS,
                                            Circle(posLeftTop,  15.0 )) )
           soc.makeCommand( CMD_MOVE,posRightTop.getX(),posRightTop.getY(),0.0);
         else
@@ -291,12 +415,12 @@ SoccerCommand Player::deMeer5_goalie(  )
       }
       else if( WM->getTimeSinceLastCatch() > 28 )
       {
-        soc = kickTo( VecPosition(0,posAgent.getY()*2.0), 2.0 );    
+        soc = kickTo( VecPosition(0,posAgent.getY()*2.0), 2.0 );
         ACT->putCommandInQueue( soc );
       }
       else if( WM->getTimeSinceLastCatch() < 25 )
       {
-        VecPosition posSide( 0.0, posAgent.getY() ); 
+        VecPosition posSide( 0.0, posAgent.getY() );
         if( fabs( (posSide - posAgent).getDirection() - angBody) > 10 )
         {
           soc = turnBodyToPoint( posSide );
