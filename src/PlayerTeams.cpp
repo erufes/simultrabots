@@ -385,3 +385,188 @@ SoccerCommand Player::erus_attacker() {
     }
     return soc;
 }
+
+VecPosition Player::best_goalie_kick(){
+    VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
+    return VecPosition(0, posAgent.getY() * 2.0);
+};
+
+// FIXME: Calcular nova posição de teleporte para cobrar o tiro livre, podendo ser qualquer uma dentro da penalty area
+VecPosition Player::best_goalie_freekick(){
+    VecPosition posLeftTop(-40.95, -10.08);
+    VecPosition posRightTop(-40.95, 10.08);
+    VecPosition pos;
+    if (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,
+                                           Circle(posRightTop, 15.0)) <
+                    WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,
+                                           Circle(posLeftTop, 15.0)))
+                    pos.setVecPosition(posRightTop.getX(), posRightTop.getY());
+                else
+                    pos.setVecPosition(posLeftTop.getX(), posLeftTop.getY());
+    return pos;
+};
+
+SoccerCommand Player::erus_goalie(){
+    // Inicialização de variaveis da função
+    int i;                                                  // controle de fluxo (??)
+    SoccerCommand soc;                                      // comando retornado no final
+    VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
+    AngDeg angBody = WM->getAgentGlobalBodyAngle();         // angulo do corpo do goleiro em relação ao próprio mundo
+
+    /* Definição do retangulo onde o goleiro se move em sua estratégia básica
+       o retangulo é definido para o lado esquerdo e o lado defendido é usado
+       como fator de conversão das coordanadas para as reais.
+    */
+    // FIXME : Mudar o retangulo para goal area (recuar o goleiro)
+    static const VecPosition posLeftTop(-PITCH_LENGTH / 2.0 +
+                                        0.7 * PENALTY_AREA_LENGTH,
+                                        -PENALTY_AREA_WIDTH / 4.0);
+    static const VecPosition posRightTop(-PITCH_LENGTH / 2.0 +
+                                         0.7 * PENALTY_AREA_LENGTH,
+                                         +PENALTY_AREA_WIDTH / 4.0);
+    static Line lineFront = Line::makeLineFromTwoPoints(posLeftTop, posRightTop);
+    static Line lineLeft = Line::makeLineFromTwoPoints(
+            VecPosition(-50.0, posLeftTop.getY()), posLeftTop);
+    static Line lineRight = Line::makeLineFromTwoPoints(
+            VecPosition(-50.0, posRightTop.getY()), posRightTop);
+
+    // Partida parada antes do inicio (Sem Alterações)
+    if (WM->isBeforeKickOff()) {
+        if (formations->getFormation() != FT_INITIAL || // not in kickoff formation
+            posAgent.getDistanceTo(WM->getStrategicPosition()) > 2.0) {
+            formations->setFormation(FT_INITIAL); // go to kick_off formation
+            ACT->putCommandInQueue(soc = teleportToPos(WM->getStrategicPosition()));
+        } else // else turn to center
+        {
+            ACT->putCommandInQueue(soc = turnBodyToPoint(VecPosition(0, 0), 0));
+            ACT->putCommandInQueue(alignNeckWithBody());
+        }
+        return soc;
+    }
+
+    /* Jogo em execução !!! */
+    formations->setFormation(ERUS_DEFAULT_FORMATION);                   //Formação da ERUS
+    
+    /* Bloco de procura pela bola 
+       Ocorre caso a confiança de saber onde a bola está é muito pequena
+    */
+    if (WM->getConfidence(OBJECT_BALL) <
+        PS->getBallConfThr()) {               // confidence ball too low
+        ACT->putCommandInQueue(searchBall()); // search ball
+        ACT->putCommandInQueue(alignNeckWithBody());
+    } // Fim do bloco de procura pela bola
+
+    /* Bloco de casos de defesa 
+       Ocorre se: 
+            o jogo estiver em andamento
+            ou for tiro livre inimigo
+            ou for escanteio inimigo
+    */
+    else if (WM->getPlayMode() == PM_PLAY_ON || WM->isFreeKickThem() ||
+               WM->isCornerKickThem()) {
+        // Se eu posso pegar a bola
+        if (WM->isBallCatchable()) {
+            // Pego a bola (envia comando de catch ball)
+            ACT->putCommandInQueue(soc = catchBall());
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, se eu posso chutar a bola
+        else if (WM->isBallKickable()) {
+            // Chuto a bola (envia comando de kick ball to x)
+            soc = kickTo(this->best_goalie_kick(), 2.0);
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, verifica se é o caso de intercepção da bola
+        // FIXME : fazer intercepção mais inteligente
+        else if (WM->isInOwnPenaltyArea(getInterceptionPointBall(&i, true)) &&
+                   WM->getFastestInSetTo(OBJECT_SET_PLAYERS, OBJECT_BALL, &i) ==
+                   WM->getAgentObjectType()) {
+            // Intercepto a bola (envia comando de intercepção da bola)
+            ACT->putCommandInQueue(soc = intercept(true));
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, me posiciono da melhor maneira que eu puder (Não Alterado)
+        // OBS: se a área de proteção for diminuida, a estratégia original pode ser efetiva
+        else {
+            // make line between own goal and the ball
+            VecPosition posMyGoal = (WM->getSide() == SIDE_LEFT)
+                                    ? SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_L, SIDE_LEFT)
+                                    : SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_RIGHT);
+            Line lineBall = Line::makeLineFromTwoPoints(WM->getBallPos(), posMyGoal);
+
+            // determine where your front line intersects with the line from ball
+            VecPosition posIntersect = lineFront.getIntersection(lineBall);
+
+            // outside rectangle, use line at side to get intersection
+            if (posIntersect.isRightOf(posRightTop))
+                posIntersect = lineRight.getIntersection(lineBall);
+            else if (posIntersect.isLeftOf(posLeftTop))
+                posIntersect = lineLeft.getIntersection(lineBall);
+
+            if (posIntersect.getX() < -49.0)
+                posIntersect.setX(-49.0);
+
+            // and move to this position
+            if (posIntersect.getDistanceTo(WM->getAgentGlobalPosition()) > 0.5) {
+                soc = moveToPos(posIntersect, PS->getPlayerWhenToTurnAngle());
+                ACT->putCommandInQueue(soc);
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            } else {
+                ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            }
+        }
+    
+    } // Fim do bloco de casos de defesa
+    
+    /* Bloco de casos de volta da bola em jogo
+       Ocorre se:
+            for nosso tiro livre (free kick)
+            ou for nosso tiro de meta (goal kick)
+    */
+    else if (WM->isFreeKickUs() == true || WM->isGoalKickUs() == true) {
+        // Se eu já tenho a bola para chutar (eu cobrarei o tiro)
+        if (WM->isBallKickable()) {
+            // Quando o número de ciclos for exatos 25 desde o último catch e é nosso tiro livre
+            // Neste caso, eu me teleporto para a posição de tiro livre após catch
+            if (WM->getTimeSinceLastCatch() == 25 && WM->isFreeKickUs()) {
+                VecPosition freekickPos = this->best_goalie_freekick();
+                soc.makeCommand(CMD_MOVE, freekickPos.getX(), freekickPos.getY(), 0.0);
+                ACT->putCommandInQueue(soc);
+            } 
+            // Se já tem mais de 28 ciclos (tanto freekick quanto goalkick chutam aqui)
+            else if (WM->getTimeSinceLastCatch() > 28) {
+                soc = kickTo(this->best_goalie_kick(), 0.0);
+                ACT->putCommandInQueue(soc);
+            } 
+            // Se ainda não passaram 24 ciclos (apenas observo)
+            else if (WM->getTimeSinceLastCatch() < 25) {
+                VecPosition posSide(0.0, posAgent.getY());
+                if (fabs((posSide - posAgent).getDirection() - angBody) > 10) {
+                    soc = turnBodyToPoint(posSide);
+                    ACT->putCommandInQueue(soc);
+                }
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            }
+        } 
+        // Caso não, se for tiro de meta, intercepto a bola
+        // Entrar aqui significa que é tiro de meta mas ainda preciso buscar a bola
+        else if (WM->isGoalKickUs()) {
+            ACT->putCommandInQueue(soc = intercept(true));
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        } 
+        // Caso não
+        else
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+    } // Fim do bloco de casos de volta da bola em jogo
+    
+    // Bloco de escape
+    else {
+        ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+        ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+    } // Fim do bloco de escape
+    
+    // Retorna o comando calculado
+    return soc;
+};
