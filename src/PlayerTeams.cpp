@@ -387,8 +387,31 @@ SoccerCommand Player::erus_attacker() {
 }
 
 VecPosition Player::best_goalie_kick(){
-    VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
-    return VecPosition(0, posAgent.getY() * 2.0);
+    VecPosition resp;
+
+    // Passo 1: separar os dois aliados mais próximos como candidatos a recepção do chute
+    ObjectT candidato1 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE),
+            candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
+    
+    if (candidato1 == OBJECT_ILLEGAL || candidato2 == OBJECT_ILLEGAL){
+        VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
+        resp.setVecPosition(0, posAgent.getY() * 2.0);
+    }else{
+        // Passo 2: definir o mais livre
+            // Versão 1: O mais longe de um inimigo
+        /* double dist1, dist2;
+        VecPosition inimigo1 = WM->getPosClosestOpponentTo(&dist1, candidato1), inimigo2 = WM->getPosClosestOpponentTo(&dist2, candidato2);
+        VecPosition resp = (dist1 < dist2) ? WM->getGlobalPosition(candidato1) : WM->getGlobalPosition(candidato2); */
+            // Versão 2: O que tem menos inimigos em um dado raio
+        VecPosition c1 = WM->getGlobalPosition(candidato1), c2 = WM->getGlobalPosition(candidato2);
+        int numInimigos1 = WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(c1, 10.0)), numInimigos2 = WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(c2, 10.0));
+        VecPosition resp = (numInimigos1 < numInimigos2) ? c1 : c2;
+            // Versão 3: O que tem o inimigo mais longe de mim
+        /* ObjectT inimigo1 = WM->getClosestInSetTo(OBJECT_SET_OPPONENTS, candidato1), inimigo2 = WM->getClosestInSetTo(OBJECT_SET_OPPONENTS, candidato2);
+        double dist1 = WM->getRelativeDistance(inimigo1), dist2 = WM->getRelativeDistance(inimigo2);
+        VecPosition resp = (dist1 < dist2) ? WM->getGlobalPosition(candidato1) : WM->getGlobalPosition(candidato2); */
+    }
+    return resp;
 };
 
 // FIXME: Calcular nova posição de teleporte para cobrar o tiro livre, podendo ser qualquer uma dentro da penalty area
@@ -473,7 +496,7 @@ SoccerCommand Player::erus_goalie(){
         // Caso não, se eu posso chutar a bola
         else if (WM->isBallKickable()) {
             // Chuto a bola (envia comando de kick ball to x)
-            soc = kickTo(this->best_goalie_kick(), 2.0);
+            soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
             ACT->putCommandInQueue(soc);
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
         }
@@ -537,7 +560,7 @@ SoccerCommand Player::erus_goalie(){
             } 
             // Se já tem mais de 28 ciclos (tanto freekick quanto goalkick chutam aqui)
             else if (WM->getTimeSinceLastCatch() > 28) {
-                soc = kickTo(this->best_goalie_kick(), 0.0);
+                soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
                 ACT->putCommandInQueue(soc);
             } 
             // Se ainda não passaram 24 ciclos (apenas observo)
