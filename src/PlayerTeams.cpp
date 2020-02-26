@@ -440,18 +440,17 @@ SoccerCommand Player::erus_goalie(){
        o retangulo é definido para o lado esquerdo e o lado defendido é usado
        como fator de conversão das coordanadas para as reais.
     */
-    // FIXME : Mudar o retangulo para goal area (recuar o goleiro)
-    static const VecPosition posLeftTop(-PITCH_LENGTH / 2.0 +
-                                        0.7 * PENALTY_AREA_LENGTH,
-                                        -PENALTY_AREA_WIDTH / 4.0);
-    static const VecPosition posRightTop(-PITCH_LENGTH / 2.0 +
-                                         0.7 * PENALTY_AREA_LENGTH,
-                                         +PENALTY_AREA_WIDTH / 4.0);
-    static Line lineFront = Line::makeLineFromTwoPoints(posLeftTop, posRightTop);
-    static Line lineLeft = Line::makeLineFromTwoPoints(
-            VecPosition(-50.0, posLeftTop.getY()), posLeftTop);
-    static Line lineRight = Line::makeLineFromTwoPoints(
-            VecPosition(-50.0, posRightTop.getY()), posRightTop);
+    static const VecPosition posLeftTop( SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX() + 0.7 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_50, SIDE_LEFT).getX() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX()),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posLeftBack(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T, SIDE_LEFT).getX(),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posRightTop(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX() + 0.7 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_50, SIDE_LEFT).getX() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX()),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_B_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posRightBack(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T, WM->getSide()).getX(),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_B_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY()));
+    static Line lineFront = Line::makeLineFromTwoPoints(posLeftTop, posRightTop),
+                lineLeft = Line::makeLineFromTwoPoints(posLeftBack, posLeftTop),
+                lineRight = Line::makeLineFromTwoPoints(posRightBack, posRightTop);
 
     // Partida parada antes do inicio (Sem Alterações)
     if (WM->isBeforeKickOff()) {
@@ -501,7 +500,6 @@ SoccerCommand Player::erus_goalie(){
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
         }
         // Caso não, verifica se é o caso de intercepção da bola
-        // FIXME : fazer intercepção mais inteligente
         else if (WM->isInOwnPenaltyArea(getInterceptionPointBall(&i, true)) &&
                    WM->getFastestInSetTo(OBJECT_SET_PLAYERS, OBJECT_BALL, &i) ==
                    WM->getAgentObjectType()) {
