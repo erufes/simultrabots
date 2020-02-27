@@ -291,27 +291,208 @@ SoccerCommand Player::deMeer5_goalie() {
 
 SoccerCommand Player::erus_attacker() {
     SoccerCommand soc(CMD_ILLEGAL);
+
     VecPosition posAgent = WM->getAgentGlobalPosition();
     VecPosition posBall = WM->getBallPos();
-    int iTmp;
 
+    // Before match begins
     if (WM->isBeforeKickOff()) {
-        if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
-        {
-            if (WM->isBallKickable()) {
-                VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
-                                    0.4 * SS->getGoalWidth());
-                soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maximal
-                Log.log(100, "take kick off");
-            } else {
-                soc = intercept(false);
-                Log.log(100, "move to ball to take kick-off");
-            }
-            ACT->putCommandInQueue(soc);
-            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            return soc;
+        // move (teleport) to formation
+        // #9 passes to closest friendly player
+    } else {
+        formations->setFormation(ERUS_DEFAULT_FORMATION);
+        soc.commandType = CMD_ILLEGAL;
+
+        // Search for ball
+        if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
+            ACT->putCommandInQueue(soc = searchBall());
+            ACT->putCommandInQueue(alignNeckWithBody());
         }
+            // if we know where the ball is, we can kick it!
+        else if (WM->isBallKickable()) {
+            // old idea: kick to goal directly
+            // new architecture:
+            // raycast to goal; can our kick reach it?
+            // if it can't, can we approach it? are there any obstacles?
+            // if there are, can we pass to someone in a better position?
+            // if we can't, then we messed up; retreat to midfielders
+            // however, if our kick can't reach the goal,
+            // but there are no obstacles, can we approach the goal?
+            // if we can, we do it.
+            // if we can't approach, we'll try to pass to someone on a
+            // better position;
+
+            /* if the distance to goal is good enough... */
+            if (posAgent.getDistanceTo(WM->getPosOpponentGoal()) < 10.0) {
+                /* ...we can try to keep on keeping up */
+                // make line between own goal and the ball
+
+                // Enemy goalie stuff
+                ObjectT enemyGoalie = WM->getOppGoalieType();
+                VecPosition enemyGoaliePos = WM->getGlobalPosition(enemyGoalie);
+
+                VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
+                            traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_L_T, SIDE_LEFT),
+                            traveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_L_B, SIDE_LEFT);
+                // Descobrir A parte em que o goleiro está protegendo mais
+                Line gol = Line::makeLineFromTwoPoints(traveDireita, traveEsquerda);
+                VecPosition pontoDefendido = gol.getPointOnLineClosestTo(goleiro),
+                            meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
+                
+                /* generate kick arc (left and right from goal) */
+                /* check where it'll be the hardest for the goalie to catch*/
+                /* maybe check if some teammate can kick better than us */
+                double distToMe1, distToMe2, minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
+                ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe1),
+                        candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe2);
+                double distToGoal1 = WM->getGlobalPosition(candidato1).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato1))),
+                       distToGoal2 = WM->getGlobalPosition(candidato2).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato2)));
+                
+                ObjectT aliado = OBJECT_ILLEGAL;
+                
+                // Se alguém estiver mais próximo de mim do que eu estou do gol e mais próximo do gol do que eu estou do gol, é o aliado que vai ganhar o chute
+                if (distToMe1 < minhaDistGol && distToGoal1 < minhaDistGol){
+                    aliado = candidato1;
+                }else if(distToMe2 < minhaDistGol && distToGoal2 < minhaDistGol){
+                    aliado = candidato2;
+                }
+
+                // Se existe aliado com melhores condições de chute:
+                if (aliado !=OBJECT_ILLEGAL){
+                    VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                    if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() <= enemyGoaliePos.getY() ) ){
+                        /* Passe! */
+                        soc = directPass(WM->getGlobalPosition(aliado), PASS_FAST);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
+                    }
+                }
+                // Se não existe aliado com melhores condições de chute
+                else
+                //Se eu e o goleiro estivermos mais próximos de metades opostas do gol, bom chute!!
+                if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && meuPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && meuPontoMaisProxGol.getY () <= enemyGoaliePos.getY() ) ){
+                        /* kick!*/
+                        soc = kickTo(meuPontoMaisProxGol, 10.0);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
+                }
+                // Se eu não tinha boas condições de chute, considerar um dos aliados mesmo assim
+                aliado = (distToGoal1 < distToGoal2) ? candidato1 : candidato2;
+
+                // se o aliado tem chance de gol, passe!!
+                if (aliado !=OBJECT_ILLEGAL){
+                    VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                    if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() <= enemyGoaliePos.getY() ) ){
+                        /* Passe! */
+                        soc = directPass(WM->getGlobalPosition(aliado), PASS_FAST);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
+                    }
+                } else /* if there are no teammates positioned */
+                {
+                    /* (we have to trust that our teammate is on the best
+                        *  possible position) 
+                        */
+
+                    /* return ball to midfielders */
+                    // POISBEM: vou retornar pra quem estiver mais livre
+                    soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
+                    ACT->putCommandInQueue(soc);
+                    return soc;
+                }
+            }
+        } else /* if we're not close enough to goal to kick confidently */
+        {
+            if (/* can we approach the goal safely? */ true) {
+                /* dribble with the ball to approach the goal */
+            } else /* there are some kind of obstacle (probably an enemy)
+                on the way*/
+            {
+                if (/* can we dribble the obstacle safely? */ true) {
+                    /* then let's try it */
+                } else /* if we're not confident that dribbling is the best action */
+                {
+                    if (/* are there any allies on a good position? */ true) {
+                        /* pass ball to ally */
+                    } else /* there are no allies on good positions */
+                    {
+                        /* return ball to midfielders*/
+                    }
+                }
+            }
+        }
+    }
+    return soc;
+}
+
+VecPosition Player::best_goalie_kick(){
+    VecPosition resp;
+
+    // Passo 1: separar os dois aliados mais próximos como candidatos a recepção do chute
+    ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE),
+            candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
+    
+    if (candidato1 == OBJECT_ILLEGAL || candidato2 == OBJECT_ILLEGAL){
+        VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
+        resp.setVecPosition(0, posAgent.getY() * 2.0);
+    }else{
+        // Passo 2: definir o mais livre
+            // Versão 1: O mais longe de um inimigo
+        /* double dist1, dist2;
+        VecPosition inimigo1 = WM->getPosClosestOpponentTo(&dist1, candidato1), inimigo2 = WM->getPosClosestOpponentTo(&dist2, candidato2);
+        VecPosition resp = (dist1 < dist2) ? WM->getGlobalPosition(candidato1) : WM->getGlobalPosition(candidato2); */
+            // Versão 2: O que tem menos inimigos em um dado raio
+        VecPosition c1 = WM->getGlobalPosition(candidato1), c2 = WM->getGlobalPosition(candidato2);
+        int numInimigos1 = WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(c1, 10.0)), numInimigos2 = WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(c2, 10.0));
+        VecPosition resp = (numInimigos1 < numInimigos2) ? c1 : c2;
+            // Versão 3: O que tem o inimigo mais longe de mim
+        /* ObjectT inimigo1 = WM->getClosestInSetTo(OBJECT_SET_OPPONENTS, candidato1), inimigo2 = WM->getClosestInSetTo(OBJECT_SET_OPPONENTS, candidato2);
+        double dist1 = WM->getRelativeDistance(inimigo1), dist2 = WM->getRelativeDistance(inimigo2);
+        VecPosition resp = (dist1 < dist2) ? WM->getGlobalPosition(candidato1) : WM->getGlobalPosition(candidato2); */
+    }
+    return resp;
+};
+
+// FIXME: Calcular nova posição de teleporte para cobrar o tiro livre, podendo ser qualquer uma dentro da penalty area
+VecPosition Player::best_goalie_freekick(){
+    VecPosition posLeftTop(-40.95, -10.08);
+    VecPosition posRightTop(-40.95, 10.08);
+    VecPosition pos;
+    if (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,
+                                           Circle(posRightTop, 15.0)) <
+                    WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,
+                                           Circle(posLeftTop, 15.0)))
+                    pos.setVecPosition(posRightTop.getX(), posRightTop.getY());
+                else
+                    pos.setVecPosition(posLeftTop.getX(), posLeftTop.getY());
+    return pos;
+};
+
+SoccerCommand Player::erus_goalie(){
+    // Inicialização de variaveis da função
+    int i;                                                  // controle de fluxo (??)
+    SoccerCommand soc;                                      // comando retornado no final
+    VecPosition posAgent = WM->getAgentGlobalPosition();    // posição do próprio goleiro no mundo
+    AngDeg angBody = WM->getAgentGlobalBodyAngle();         // angulo do corpo do goleiro em relação ao próprio mundo
+
+    /* Definição do retangulo onde o goleiro se move em sua estratégia básica
+       o retangulo é definido para o lado esquerdo e o lado defendido é usado
+       como fator de conversão das coordanadas para as reais.
+    */
+    static const VecPosition posLeftTop( SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX() + 0.7 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_50, SIDE_LEFT).getX() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX()),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posLeftBack(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T, SIDE_LEFT).getX(),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posRightTop(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX() + 0.7 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_50, SIDE_LEFT).getX() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getX()),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_B_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY())),
+                             posRightBack(SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_T, WM->getSide()).getX(),
+                                         SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY() + 0.9 * (SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_B_10, SIDE_LEFT).getY() - SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_L_0, SIDE_LEFT).getY()));
+    static Line lineFront = Line::makeLineFromTwoPoints(posLeftTop, posRightTop),
+                lineLeft = Line::makeLineFromTwoPoints(posLeftBack, posLeftTop),
+                lineRight = Line::makeLineFromTwoPoints(posRightBack, posRightTop);
+
+    // Partida parada antes do inicio (Sem Alterações)
+    if (WM->isBeforeKickOff()) {
         if (formations->getFormation() != FT_INITIAL || // not in kickoff formation
             posAgent.getDistanceTo(WM->getStrategicPosition()) > 2.0) {
             formations->setFormation(FT_INITIAL); // go to kick_off formation
@@ -321,69 +502,130 @@ SoccerCommand Player::erus_attacker() {
             ACT->putCommandInQueue(soc = turnBodyToPoint(VecPosition(0, 0), 0));
             ACT->putCommandInQueue(alignNeckWithBody());
         }
-    } else {
-        formations->setFormation(ERUS_DEFAULT_FORMATION);
-        soc.commandType = CMD_ILLEGAL;
+        return soc;
+    }
 
-        ObjectT enemyGoalie = WM->getOppGoalieType();
-        VecPosition enemyGoaliePos = WM->getGlobalPosition(enemyGoalie);
+    /* Jogo em execução !!! */
+    formations->setFormation(ERUS_DEFAULT_FORMATION);                   //Formação da ERUS
+    
+    /* Bloco de procura pela bola 
+       Ocorre caso a confiança de saber onde a bola está é muito pequena
+    */
+    if (WM->getConfidence(OBJECT_BALL) <
+        PS->getBallConfThr()) {               // confidence ball too low
+        ACT->putCommandInQueue(searchBall()); // search ball
+        ACT->putCommandInQueue(alignNeckWithBody());
+    } // Fim do bloco de procura pela bola
 
+    /* Bloco de casos de defesa 
+       Ocorre se: 
+            o jogo estiver em andamento
+            ou for tiro livre inimigo
+            ou for escanteio inimigo
+    */
+    else if (WM->getPlayMode() == PM_PLAY_ON || WM->isFreeKickThem() ||
+               WM->isCornerKickThem()) {
+        // Se eu posso pegar a bola
+        if (WM->isBallCatchable()) {
+            // Pego a bola (envia comando de catch ball)
+            ACT->putCommandInQueue(soc = catchBall());
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, se eu posso chutar a bola
+        else if (WM->isBallKickable()) {
+            // Chuto a bola (envia comando de kick ball to x)
+            soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, verifica se é o caso de intercepção da bola
+        else if (WM->isInOwnPenaltyArea(getInterceptionPointBall(&i, true)) &&
+                   WM->getFastestInSetTo(OBJECT_SET_PLAYERS, OBJECT_BALL, &i) ==
+                   WM->getAgentObjectType()) {
+            // Intercepto a bola (envia comando de intercepção da bola)
+            ACT->putCommandInQueue(soc = intercept(true));
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        }
+        // Caso não, me posiciono da melhor maneira que eu puder (Não Alterado)
+        else {
+            // make line between own goal and the ball
+            VecPosition posMyGoal = (WM->getSide() == SIDE_LEFT)
+                                    ? SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_L, SIDE_LEFT)
+                                    : SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_RIGHT);
+            Line lineBall = Line::makeLineFromTwoPoints(WM->getBallPos(), posMyGoal);
 
-        if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
-            ACT->putCommandInQueue(soc = searchBall());  // if ball pos unknown
-            ACT->putCommandInQueue(alignNeckWithBody()); // search for it
-        } else if (WM->isBallKickable()) // if kickable
-        {
-            
-        } else if (WM->getFastestInSetTo(OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
-                   !WM->isDeadBallThem()) { // if fastest to ball
-            Log.log(100, "I am fastest to ball; can get there in %d cycles", iTmp);
-            soc = intercept(false); // intercept the ball
+            // determine where your front line intersects with the line from ball
+            VecPosition posIntersect = lineFront.getIntersection(lineBall);
 
-            if (soc.commandType == CMD_DASH && // if stamina low
-                WM->getAgentStamina().getStamina() <
-                SS->getRecoverDecThr() * SS->getStaminaMax() + 200) {
-                soc.dPower = 30.0 * WM->getAgentStamina().getRecovery(); // dash slow
+            // outside rectangle, use line at side to get intersection
+            if (posIntersect.isRightOf(posRightTop))
+                posIntersect = lineRight.getIntersection(lineBall);
+            else if (posIntersect.isLeftOf(posLeftTop))
+                posIntersect = lineLeft.getIntersection(lineBall);
+
+            //if (posIntersect.getX() < -49.0)
+            //    posIntersect.setX(-49.0);
+
+            // and move to this position
+            if (posIntersect.getDistanceTo(WM->getAgentGlobalPosition()) > 0.5) {
+                soc = moveToPos(posIntersect, PS->getPlayerWhenToTurnAngle());
                 ACT->putCommandInQueue(soc);
                 ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            } else // if stamina high
-            {
-                ACT->putCommandInQueue(soc); // dash as intended
-                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            }
-        } else if (posBall.getX() < SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_20, SIDE_LEFT).getX()){
-            if (WM->getAgentStamina().getStamina() > // if stamina high
-                    SS->getRecoverDecThr() * SS->getStaminaMax() + 800) {
-                soc = moveToPos(VecPosition(posBall.getX(),WM->getStrategicPosition().getY()), enemyGoaliePos.getDirection());
-                ACT->putCommandInQueue(soc);
-                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            }else // else watch ball
-            {
+            } else {
                 ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
                 ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
             }
         }
-        else if (posAgent.getDistanceTo(WM->getStrategicPosition()) >
-                   1.5 + fabs(posAgent.getX() - posBall.getX()) / 10.0)
-            // if not near strategic pos
-        {
-            if (WM->getAgentStamina().getStamina() > // if stamina high
-                SS->getRecoverDecThr() * SS->getStaminaMax() + 800) {
-                soc = moveToPos(WM->getStrategicPosition(),
-                                PS->getPlayerWhenToTurnAngle());
-                ACT->putCommandInQueue(soc); // move to strategic pos
-                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            } else // else watch ball
-            {
-                ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+    
+    } // Fim do bloco de casos de defesa
+    
+    /* Bloco de casos de volta da bola em jogo
+       Ocorre se:
+            for nosso tiro livre (free kick)
+            ou for nosso tiro de meta (goal kick)
+    */
+    else if (WM->isFreeKickUs() == true || WM->isGoalKickUs() == true) {
+        // Se eu já tenho a bola para chutar (eu cobrarei o tiro)
+        if (WM->isBallKickable()) {
+            // Quando o número de ciclos for exatos 25 desde o último catch e é nosso tiro livre
+            // Neste caso, eu me teleporto para a posição de tiro livre após catch
+            if (WM->getTimeSinceLastCatch() == 25 && WM->isFreeKickUs()) {
+                VecPosition freekickPos = this->best_goalie_freekick();
+                soc.makeCommand(CMD_MOVE, freekickPos.getX(), freekickPos.getY(), 0.0);
+                ACT->putCommandInQueue(soc);
+            } 
+            // Se já tem mais de 28 ciclos (tanto freekick quanto goalkick chutam aqui)
+            else if (WM->getTimeSinceLastCatch() > 28) {
+                soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            } 
+            // Se ainda não passaram 24 ciclos (apenas observo)
+            else if (WM->getTimeSinceLastCatch() < 25) {
+                VecPosition posSide(0.0, posAgent.getY());
+                if (fabs((posSide - posAgent).getDirection() - angBody) > 10) {
+                    soc = turnBodyToPoint(posSide);
+                    ACT->putCommandInQueue(soc);
+                }
                 ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
             }
-        } else if (fabs(WM->getRelativeAngle(OBJECT_BALL)) > 1.0) // watch ball
-        {
-            ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+        } 
+        // Caso não, se for tiro de meta, intercepto a bola
+        // Entrar aqui significa que é tiro de meta mas ainda preciso buscar a bola
+        else if (WM->isGoalKickUs()) {
+            ACT->putCommandInQueue(soc = intercept(true));
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-        } else // nothing to do
-            ACT->putCommandInQueue(SoccerCommand(CMD_TURNNECK, 0.0));
-    }
+        } 
+        // Caso não
+        else
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+    } // Fim do bloco de casos de volta da bola em jogo
+    
+    // Bloco de escape
+    else {
+        ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+        ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+    } // Fim do bloco de escape
+    
+    // Retorna o comando calculado
     return soc;
-}
+};
