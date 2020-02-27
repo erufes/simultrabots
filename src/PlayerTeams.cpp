@@ -331,53 +331,91 @@ SoccerCommand Player::erus_attacker() {
                 ObjectT enemyGoalie = WM->getOppGoalieType();
                 VecPosition enemyGoaliePos = WM->getGlobalPosition(enemyGoalie);
 
-                // Enemy goal stuff
-                VecPosition posGoalTarget = (WM->getSide() != SIDE_LEFT)
-                                        ? SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_L, SIDE_LEFT)
-                                        : SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_RIGHT);
+                VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
+                            traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_L_T, SIDE_LEFT),
+                            traveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_L_B, SIDE_LEFT);
+                // Descobrir A parte em que o goleiro está protegendo mais
+                Line gol = Line::makeLineFromTwoPoints(traveDireita, traveEsquerda);
+                VecPosition pontoDefendido = gol.getPointOnLineClosestTo(goleiro),
+                            meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
+                
+                /* generate kick arc (left and right from goal) */
+                /* check where it'll be the hardest for the goalie to catch*/
+                /* maybe check if some teammate can kick better than us */
+                double distToMe1, distToMe2, minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
+                ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe1),
+                        candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe2);
+                double distToGoal1 = WM->getGlobalPosition(candidato1).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato1))),
+                       distToGoal2 = WM->getGlobalPosition(candidato2).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato2)));
+                
+                ObjectT aliado = OBJECT_ILLEGAL;
+                
+                // Se alguém estiver mais próximo de mim do que eu estou do gol e mais próximo do gol do que eu estou do gol, é o aliado que vai ganhar o chute
+                if (distToMe1 < minhaDistGol && distToGoal1 < minhaDistGol){
+                    aliado = candidato1;
+                }else if(distToMe2 < minhaDistGol && distToGoal2 < minhaDistGol){
+                    aliado = candidato2;
+                }
 
-                // Our casts
-                Line rcast = Line::makeLineFromTwoPoints(posBall, posGoalTarget);
-                Line rcast_goalie = Line::makeLineFromTwoPoints(posBall, enemyGoaliePos);
-
-                if (/* raycast to goal, goalie position ok */ true) {
-                    /* generate kick arc (left and right from goal) */
-                    /* check where it'll be the hardest for the goalie to catch*/
-                    /* maybe check if some teammate can kick better than us */
-                    if (/* are the conditions optimal? */ true) {
-                        /* kick! */
-                    }
-                } else /* if the goalie is messing with our kick */
-                {
-                    if (/* there is some teammate on a decent position*/ true) {
-                        /* try to pass */
-                    } else /* if there are no teammates positioned */
-                    {
-
-                        /* (we have to trust that our teammate is on the best
-                         *  possible position) 
-                         */
-
-                        /* return ball to midfielders */
+                // Se existe aliado com melhores condições de chute:
+                if (aliado !=OBJECT_ILLEGAL){
+                    VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                    if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() <= enemyGoaliePos.getY() ) ){
+                        /* Passe! */
+                        soc = directPass(WM->getGlobalPosition(aliado), PASS_FAST);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
                     }
                 }
-            } else /* if we're not close enough to goal to kick confidently */
-            {
-                if (/* can we approach the goal safely? */ true) {
-                    /* dribble with the ball to approach the goal */
-                } else /* there are some kind of obstacle (probably an enemy)
-                 on the way*/
+                // Se não existe aliado com melhores condições de chute
+                else
+                //Se eu e o goleiro estivermos mais próximos de metades opostas do gol, bom chute!!
+                if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && meuPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && meuPontoMaisProxGol.getY () <= enemyGoaliePos.getY() ) ){
+                        /* kick!*/
+                        soc = kickTo(meuPontoMaisProxGol, 10.0);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
+                }
+                // Se eu não tinha boas condições de chute, considerar um dos aliados mesmo assim
+                aliado = (distToGoal1 < distToGoal2) ? candidato1 : candidato2;
+
+                // se o aliado tem chance de gol, passe!!
+                if (aliado !=OBJECT_ILLEGAL){
+                    VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                    if ( ( pontoDefendido.getY() < enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( pontoDefendido.getY() > enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() <= enemyGoaliePos.getY() ) ){
+                        /* Passe! */
+                        soc = directPass(WM->getGlobalPosition(aliado), PASS_FAST);
+                        ACT->putCommandInQueue(soc);
+                        return soc;
+                    }
+                } else /* if there are no teammates positioned */
                 {
-                    if (/* can we dribble the obstacle safely? */ true) {
-                        /* then let's try it */
-                    } else /* if we're not confident that dribbling is the best action */
+
+                    /* (we have to trust that our teammate is on the best
+                        *  possible position) 
+                        */
+
+                    /* return ball to midfielders */
+                    // POISBEM: vou retornar pra quem estiver mais livre
+                    
+                }
+            }
+        } else /* if we're not close enough to goal to kick confidently */
+        {
+            if (/* can we approach the goal safely? */ true) {
+                /* dribble with the ball to approach the goal */
+            } else /* there are some kind of obstacle (probably an enemy)
+                on the way*/
+            {
+                if (/* can we dribble the obstacle safely? */ true) {
+                    /* then let's try it */
+                } else /* if we're not confident that dribbling is the best action */
+                {
+                    if (/* are there any allies on a good position? */ true) {
+                        /* pass ball to ally */
+                    } else /* there are no allies on good positions */
                     {
-                        if (/* are there any allies on a good position? */ true) {
-                            /* pass ball to ally */
-                        } else /* there are no allies on good positions */
-                        {
-                            /* return ball to midfielders*/
-                        }
+                        /* return ball to midfielders*/
                     }
                 }
             }
