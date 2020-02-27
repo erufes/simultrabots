@@ -297,12 +297,7 @@ SoccerCommand Player::erus_attacker() {
     int iTmp;
 
     ObjectT       prox = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
-    ObjectT       prox2 = WM->getSecondClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
-    ObjectT       enemy = WM->getClosestInSetTo( OBJECT_SET_OPPONENTS,OBJECT_TEAMMATE_UNKNOWN,NULL,-1.0);
-    ObjectT       anterior;
-
     VecPosition   pos = WM->getGlobalPosition(prox);
-    VecPosition   pos2 = WM->getGlobalPosition(prox2);
 
     if (WM->isBeforeKickOff()) {
         if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
@@ -351,17 +346,7 @@ SoccerCommand Player::erus_attacker() {
             VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
             (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
             (meuPontoMaisProxGol.getY() > traveEsquerda.getY()) ? meuPontoMaisProxGol.setY(traveEsquerda.getY() - 2) : 0;
-            if(i==0){
-                anterior=prox;
-            }
-            if(i==0 || anterior!=prox)
-                soc = directPass(pos, PASS_NORMAL);
-            else
-            {
-                soc = directPass(pos2, PASS_NORMAL);
-                i=0;
-            }
-            i++;
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         } else if (WM->getFastestInSetTo(OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
