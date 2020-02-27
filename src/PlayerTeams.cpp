@@ -169,7 +169,7 @@ SoccerCommand Player::deMeer5(  )
   return soc;
 }
 
-SoccerCommand Player::mayke(  )
+SoccerCommand Player::erus_defense(  )
 {
 
   SoccerCommand soc(CMD_ILLEGAL);
@@ -225,7 +225,7 @@ SoccerCommand Player::mayke(  )
       ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
     }
-    else if( WM->isBallInOurPossesion())
+    else if(  WM->isBallKickable())
     {
       if(i==0){
           anterior=prox;
@@ -262,7 +262,7 @@ SoccerCommand Player::mayke(  )
       }
      }
      else if( posAgent.getDistanceTo(WM->getStrategicPosition()) >
-                  1.5 + fabs(posAgent.getX()-posBall.getX())/15.0)
+                  1.5 + fabs(posAgent.getX()-posBall.getX())/5.0)
                                                   // if not near strategic pos
      {
        if( WM->getAgentStamina().getStamina() >     // if stamina high
@@ -283,6 +283,10 @@ SoccerCommand Player::mayke(  )
      {
        ACT->putCommandInQueue( soc = turnBodyToObject( OBJECT_BALL ) );
        ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+     }
+     else if (WM->isBallInOurPossesion())
+     {
+       ACT->putCommandInQueue( SoccerCommand(CMD_TURNNECK,0.0) );
      }
      else
      {
