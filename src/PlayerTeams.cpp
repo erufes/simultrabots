@@ -335,14 +335,25 @@ SoccerCommand Player::erus_attacker() {
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
         } else if (WM->isBallKickable()) // if kickable
         {
-            // can we freely kick to enemy goal?
-            // if so, will there be any enemy players in the way?
+            VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
+                        traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_T, SIDE_LEFT),
+                        traveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_B, SIDE_LEFT);
+            // Descobrir A parte em que o goleiro está protegendo mais
+            Line gol = Line::makeLineFromTwoPoints(traveDireita, traveEsquerda);
+            VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
+            (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
+            (meuPontoMaisProxGol.getY() > traveEsquerda.getY()) ? meuPontoMaisProxGol.setY(traveEsquerda.getY() - 2) : 0;
 
-            // if not, can we pass the ball to someone else?
-            VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
-
-            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
+            /* if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY () <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
+             */    /* kick!*/
+                soc = directPass(meuPontoMaisProxGol, PASS_NORMAL);
+            /* }else{
+                ObjectT aliado = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
+                VecPosition posChute = (aliado != OBJECT_ILLEGAL) ? WM->getGlobalPosition(aliado) : (PITCH_LENGTH / 2.0,
+                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
+                                    0.4 * SS->getGoalWidth());
+                soc = directPass(posChute, PASS_NORMAL);
+            } */
             ACT->putCommandInQueue(soc);
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
             Log.log(100, "kick ball");
