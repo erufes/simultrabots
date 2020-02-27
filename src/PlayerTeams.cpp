@@ -390,7 +390,7 @@ VecPosition Player::best_goalie_kick(){
     VecPosition resp;
 
     // Passo 1: separar os dois aliados mais próximos como candidatos a recepção do chute
-    ObjectT candidato1 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE),
+    ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE),
             candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
     
     if (candidato1 == OBJECT_ILLEGAL || candidato2 == OBJECT_ILLEGAL){
@@ -508,7 +508,6 @@ SoccerCommand Player::erus_goalie(){
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
         }
         // Caso não, me posiciono da melhor maneira que eu puder (Não Alterado)
-        // OBS: se a área de proteção for diminuida, a estratégia original pode ser efetiva
         else {
             // make line between own goal and the ball
             VecPosition posMyGoal = (WM->getSide() == SIDE_LEFT)
@@ -525,8 +524,8 @@ SoccerCommand Player::erus_goalie(){
             else if (posIntersect.isLeftOf(posLeftTop))
                 posIntersect = lineLeft.getIntersection(lineBall);
 
-            if (posIntersect.getX() < -49.0)
-                posIntersect.setX(-49.0);
+            //if (posIntersect.getX() < -49.0)
+            //    posIntersect.setX(-49.0);
 
             // and move to this position
             if (posIntersect.getDistanceTo(WM->getAgentGlobalPosition()) > 0.5) {
