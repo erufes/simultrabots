@@ -274,7 +274,7 @@ SoccerCommand Player::midfielderMainLoop() {
 
 /*! This is the main decision loop for an agent. */
 SoccerCommand Player::attackerMainLoop() {
-    return deMeer5();
+    return erus_attacker();
 }
 
 /*! This method returns the position to move in case of a dead ball situation.
