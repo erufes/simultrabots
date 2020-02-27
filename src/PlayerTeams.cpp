@@ -178,12 +178,13 @@ SoccerCommand Player::erus_midFielder(  )
 
   ObjectT ally1 = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE, OBJECT_BALL, NULL, -1.0);
   ObjectT ally2 = WM->getSecondClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE, OBJECT_BALL, NULL, -1.0);
+  ObjectT prev;
   ObjectT opponent1 = WM->getClosestInSetTo(OBJECT_SET_OPPONENTS, OBJECT_BALL, NULL, -1.0);
   ObjectT opponent2 = WM->getSecondClosestInSetTo(OBJECT_SET_OPPONENTS, OBJECT_BALL, NULL, -1.0);
 
   VecPosition al1 = WM->getGlobalPosition(ally1);
   VecPosition all2 = WM->getGlobalPosition(ally2);
-  VecPosition previous;
+  VecPosition previous = WM->getGlobalPosition(prev);
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
 
@@ -236,7 +237,7 @@ else
         }
       }
       else if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0)) < 2){
-        if(getPlayerType(ally2) == PT_MIDFIELDER_CENTER || getPlayerType(ally2) == PT_MIDFIELDER_WING){
+        if((getPlayerType(ally2) == PT_MIDFIELDER_CENTER || getPlayerType(ally2) == PT_MIDFIELDER_WING)){
           prev = ally2;
           soc = directPass(al2, PASS_NORMAL);
         }
@@ -244,11 +245,16 @@ else
     }
     else{
       if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >=2){
-        if(getPlayerType(ally1) == PT_ATTACKER || getPlayerType(ally1) == PT_ATTACKER_WING){
+        if((getPlayerType(ally1) == PT_ATTACKER || getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
         }
-        else if(getPlayerType(ally2) == PT_ATTACKER || getPlayerType(ally2) == PT_ATTACKER_WING){
+        else if((getPlayerType(ally2) == PT_ATTACKER || getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
           soc = directPass(al2, PASS_NORMAL);
+        }
+      }
+      else if{
+        if((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)){
+          soc = directPass(previous, PASS_NORMAL);
         }
       }
     }
