@@ -175,10 +175,13 @@ SoccerCommand Player::erus_attacker() {
         if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
         {
             if (WM->isBallKickable()) {
-                VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
-                                    0.4 * SS->getGoalWidth());
-                soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maximal
+                // Pass to closest ally, instead of just kicking off randomly
+                ObjectT closestPlayer = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, posAgent);
+                soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
+                // VecPosition posGoal(PITCH_LENGTH / 2.0,
+                //                     (-1 + 2 * (WM->getCurrentCycle() % 2)) *
+                //                     0.4 * SS->getGoalWidth());
+                // soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maximal
                 Log.log(100, "take kick off");
             } else {
                 soc = intercept(false);
