@@ -80,7 +80,6 @@ class Player:public BasicPlayer
   SoccerCommand defenderMainLoop          (                                  );
   SoccerCommand midfielderMainLoop        (                                  );
   SoccerCommand attackerMainLoop          (                                  );
-  SoccerCommand erus_midfielder           (                                  );
 
   void          performPenalty            (                                  );
 
@@ -118,6 +117,7 @@ public:
   // simple teams (PlayerTeams.cpp)
   SoccerCommand deMeer5                   (                                  );
   SoccerCommand deMeer5_goalie            (                                  );
+  SoccerCommand erus_midfielder           (                                  );  
   
 
 };

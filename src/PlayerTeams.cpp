@@ -183,7 +183,7 @@ SoccerCommand Player::erus_midfielder(  )
   ObjectT opponent2 = WM->getSecondClosestInSetTo(OBJECT_SET_OPPONENTS, OBJECT_BALL, NULL, -1.0);
 
   VecPosition al1 = WM->getGlobalPosition(ally1);
-  VecPosition all2 = WM->getGlobalPosition(ally2);
+  VecPosition al2 = WM->getGlobalPosition(ally2);
   VecPosition previous = WM->getGlobalPosition(prev);
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
@@ -245,7 +245,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
     }
     else{
-      if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >=2){
+      if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >= 2){
         if((getPlayerType(ally1) == PT_ATTACKER || getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
         }
