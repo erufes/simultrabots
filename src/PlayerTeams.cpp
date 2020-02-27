@@ -169,6 +169,8 @@ SoccerCommand Player::erus_attacker() {
     SoccerCommand soc(CMD_ILLEGAL);
     VecPosition posAgent = WM->getAgentGlobalPosition();
     VecPosition posBall = WM->getBallPos();
+    VecPosition posGoal = WM->getPosOpponentGoal();
+
     int iTmp;
 
     if (WM->isBeforeKickOff()) {
@@ -209,12 +211,27 @@ SoccerCommand Player::erus_attacker() {
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
         } else if (WM->isBallKickable()) // if kickable
         {
-            // can we freely kick to enemy goal?
-            // if so, will there be any enemy players in the way?
+            // check distance to goal. is it good?
+            // TODO: Magic number
+            if(posAgent.getDistanceTo(posGoal) < 10) {
+                // check for enemies besides goalie
+                // talvez montar um retângulo entre o player e o gol, e checar se tem algum inimigo (além do goleiro)
+                // nesse retângulo?
+                //getBestKickDirection() -> Nesse aqui vou usar a função da Lorena
+                soc = kickTo(posGoal, SS->getBallSpeedMax());
+            }
+            else {
+                // ver como a função de drible funciona!
+                // drible()
+
+                ObjectT closestPlayer = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, posAgent);
+                soc = kickTo(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
+            }
+            
 
             // if not, can we pass the ball to someone else?
-            VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
+            // VecPosition posGoal(PITCH_LENGTH / 2.0,
+            //                     (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
 
             soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
             ACT->putCommandInQueue(soc);
