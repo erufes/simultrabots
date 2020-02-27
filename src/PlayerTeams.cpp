@@ -169,7 +169,7 @@ SoccerCommand Player::deMeer5(  )
   return soc;
 }
 
-SoccerCommand Player::erus_midFielder(  )
+SoccerCommand Player::erus_midfielder(  )
 {
   SoccerCommand soc(CMD_ILLEGAL);
   VecPosition posAgent = WM->getAgentGlobalPosition();
@@ -188,39 +188,40 @@ SoccerCommand Player::erus_midFielder(  )
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
 
-  if( WM->isBeforeKickOff() )
+  if( WM->isBeforeKickOff( ) )
   {
-    if(WM->isKickOffUs( ) && WM->getPlayerNumber() == 9)
+    if( WM->isKickOffUs( ) && WM->getPlayerNumber() == 9 ) // 9 takes kick
     {
-      if(WM->isBallInOurPossesion())
+      if(  WM->isBallInOurPossesion())
       {
-        ours = true;
       }
+      else
+      {
+        soc = intercept( false );
+        Log.log( 100, "move to ball to take kick-off" );
+      }
+      ACT->putCommandInQueue( soc );
+      ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+      return soc;
     }
-    else
+    if( formations->getFormation() != FT_INITIAL || // not in kickoff formation
+        posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0 )
     {
-      soc = intercept( false );
+      formations->setFormation( FT_INITIAL );       // go to kick_off formation
+      ACT->putCommandInQueue( soc=teleportToPos( WM->getStrategicPosition() ));
     }
-    ACT->putCommandInQueue( soc );
-    ACT->putCommandInQueue( turnNeckToObject(OBJECT_BALL, soc) );
-    return soc;
-  }
-  if( formations->getFormation() != FT_INITIAL || posAgent.getDistanceTo( WM->getStrategicPosition() ) > 2.0)
-  {
-    formations->setFormation( FT_INITIAL );
-    ACT->putCommandInQueue( soc =teleportToPos ( WM->getStrategicPosition() ));
+    else                                            // else turn to center
+    {
+      ACT->putCommandInQueue( soc=turnBodyToPoint( VecPosition( 0, 0 ), 0 ) );
+      ACT->putCommandInQueue( alignNeckWithBody( ) );
+    }
   }
   else
   {
-    ACT->putCommandInQueue( soc=turnBodyToPoint( VecPosition( 0, 0 ), 0));
-    ACT->putCommandInQueue( alignNeckWithBody( ) );
-  }
-}
-else
-{
-  formations->setFormation( FT_433_OFFENSIVE );
-  soc.commandType = CMD_ILLEGAL;
-  if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
+    formations->setFormation( FT_433_OFFENSIVE );
+    soc.commandType = CMD_ILLEGAL;
+
+    if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
     {
       ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
@@ -228,7 +229,7 @@ else
   else if(WM->isBallInOurPossesion()){
 
     if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
-    ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)))
+    ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
     {
       if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){ 
         if(getPlayerType(ally1) == PT_MIDFIELDER_CENTER || getPlayerType(ally1) == PT_MIDFIELDER_WING){
@@ -304,7 +305,7 @@ else
      }
      else
      {
-        soc = mark(enemy, 0.5, MARK_BALL );                    // nothing to do
+        soc = mark(opp1, 0.5, MARK_BALL );                    // nothing to do
        ACT->putCommandInQueue( soc);
      }
    }

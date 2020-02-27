@@ -80,6 +80,7 @@ class Player:public BasicPlayer
   SoccerCommand defenderMainLoop          (                                  );
   SoccerCommand midfielderMainLoop        (                                  );
   SoccerCommand attackerMainLoop          (                                  );
+  SoccerCommand erus_midfielder           (                                  );
 
   void          performPenalty            (                                  );
 

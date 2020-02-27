@@ -235,7 +235,7 @@ SoccerCommand Player::defenderMainLoop( )
 /*! This is the main decision loop for a midfielder. */
 SoccerCommand Player::midfielderMainLoop( )
 {
-  return erus_midFielder() ;
+  return erus_midfielder() ;
 }
 
 /*! This is the main decision loop for an agent. */
