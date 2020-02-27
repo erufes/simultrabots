@@ -390,14 +390,15 @@ SoccerCommand Player::erus_attacker() {
                     }
                 } else /* if there are no teammates positioned */
                 {
-
                     /* (we have to trust that our teammate is on the best
                         *  possible position) 
                         */
 
                     /* return ball to midfielders */
                     // POISBEM: vou retornar pra quem estiver mais livre
-                    
+                    soc = directPass(this->best_goalie_kick(), PASS_NORMAL);
+                    ACT->putCommandInQueue(soc);
+                    return soc;
                 }
             }
         } else /* if we're not close enough to goal to kick confidently */
