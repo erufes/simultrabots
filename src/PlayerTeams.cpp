@@ -154,6 +154,111 @@ SoccerCommand Player::deMeer5() {
     return soc;
 }
 
+/*!This method is the first complete simple team and defines the actions taken
+   by all the players on the field (excluding the goalie). It is based on the
+   high-level actions taken by the simple team FC Portugal that it released in
+   2000. The players do the following:
+   - if ball is kickable
+       kick ball to goal (random corner of goal)
+   - else if i am fastest player to ball
+       intercept the ball
+   - else
+       move to strategic position based on your home position and pos ball */
+SoccerCommand Player::erus_attacker() {
+
+    SoccerCommand soc(CMD_ILLEGAL);
+    VecPosition posAgent = WM->getAgentGlobalPosition();
+    VecPosition posBall = WM->getBallPos();
+    int iTmp;
+
+    if (WM->isBeforeKickOff()) {
+        if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
+        {
+            if (WM->isBallKickable()) {
+                VecPosition posGoal(PITCH_LENGTH / 2.0,
+                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
+                                    0.4 * SS->getGoalWidth());
+                soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maximal
+                Log.log(100, "take kick off");
+            } else {
+                soc = intercept(false);
+                Log.log(100, "move to ball to take kick-off");
+            }
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            return soc;
+        }
+        if (formations->getFormation() != FT_INITIAL || // not in kickoff formation
+            posAgent.getDistanceTo(WM->getStrategicPosition()) > 2.0) {
+            formations->setFormation(FT_INITIAL); // go to kick_off formation
+            ACT->putCommandInQueue(soc = teleportToPos(WM->getStrategicPosition()));
+        } else // else turn to center
+        {
+            ACT->putCommandInQueue(soc = turnBodyToPoint(VecPosition(0, 0), 0));
+            ACT->putCommandInQueue(alignNeckWithBody());
+        }
+    } else {
+        formations->setFormation(FT_433_OFFENSIVE);
+        soc.commandType = CMD_ILLEGAL;
+
+        if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
+            ACT->putCommandInQueue(soc = searchBall());  // if ball pos unknown
+            ACT->putCommandInQueue(alignNeckWithBody()); // search for it
+        } else if (WM->isBallKickable()) // if kickable
+        {
+            // can we freely kick to enemy goal?
+            // if so, will there be any enemy players in the way?
+
+            // if not, can we pass the ball to someone else?
+            VecPosition posGoal(PITCH_LENGTH / 2.0,
+                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
+
+            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            Log.log(100, "kick ball");
+        } else if (WM->getFastestInSetTo(OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
+                   !WM->isDeadBallThem()) { // if fastest to ball
+            Log.log(100, "I am fastest to ball; can get there in %d cycles", iTmp);
+            soc = intercept(false); // intercept the ball
+
+            if (soc.commandType == CMD_DASH && // if stamina low
+                WM->getAgentStamina().getStamina() <
+                SS->getRecoverDecThr() * SS->getStaminaMax() + 200) {
+                soc.dPower = 30.0 * WM->getAgentStamina().getRecovery(); // dash slow
+                ACT->putCommandInQueue(soc);
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            } else // if stamina high
+            {
+                ACT->putCommandInQueue(soc); // dash as intended
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            }
+        } else if (posAgent.getDistanceTo(WM->getStrategicPosition()) >
+                   1.5 + fabs(posAgent.getX() - posBall.getX()) / 10.0)
+            // if not near strategic pos
+        {
+            if (WM->getAgentStamina().getStamina() > // if stamina high
+                SS->getRecoverDecThr() * SS->getStaminaMax() + 800) {
+                soc = moveToPos(WM->getStrategicPosition(),
+                                PS->getPlayerWhenToTurnAngle());
+                ACT->putCommandInQueue(soc); // move to strategic pos
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            } else // else watch ball
+            {
+                ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            }
+        } else if (fabs(WM->getRelativeAngle(OBJECT_BALL)) > 1.0) // watch ball
+        {
+            ACT->putCommandInQueue(soc = turnBodyToObject(OBJECT_BALL));
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        } else // nothing to do
+            ACT->putCommandInQueue(SoccerCommand(CMD_TURNNECK, 0.0));
+    }
+    return soc;
+}
+
+
 SoccerCommand Player::dummyBehaviour() {
     SoccerCommand soc(CMD_ILLEGAL);
     VecPosition posAgent = WM->getAgentGlobalPosition();
@@ -289,99 +394,116 @@ SoccerCommand Player::deMeer5_goalie() {
     return soc;
 }
 
-SoccerCommand Player::erus_attacker() {
-    SoccerCommand soc(CMD_ILLEGAL);
 
-    VecPosition posAgent = WM->getAgentGlobalPosition();
-    VecPosition posBall = WM->getBallPos();
 
-    // Before match begins
-    if (WM->isBeforeKickOff()) {
-        // move (teleport) to formation
-        // #9 passes to closest friendly player
-    } else {
-        formations->setFormation(ERUS_DEFAULT_FORMATION);
-        soc.commandType = CMD_ILLEGAL;
+// TODO: Reimplementar isso aqui no futuro eventualmente...
 
-        // Search for ball
-        if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
-            ACT->putCommandInQueue(soc = searchBall());
-            ACT->putCommandInQueue(alignNeckWithBody());
-        }
-            // if we know where the ball is, we can kick it!
-        else if (WM->isBallKickable()) {
-            // old idea: kick to goal directly
-            // new architecture:
-            // raycast to goal; can our kick reach it?
-            // if it can't, can we approach it? are there any obstacles?
-            // if there are, can we pass to someone in a better position?
-            // if we can't, then we messed up; retreat to midfielders
-            // however, if our kick can't reach the goal,
-            // but there are no obstacles, can we approach the goal?
-            // if we can, we do it.
-            // if we can't approach, we'll try to pass to someone on a
-            // better position;
+// SoccerCommand Player::erus_attacker() {
+//     SoccerCommand soc(CMD_ILLEGAL);
 
-            /* if the distance to goal is good enough... */
-            if (posAgent.getDistanceTo(WM->getPosOpponentGoal()) < 10.0) {
-                /* ...we can try to keep on keeping up */
-                // make line between own goal and the ball
+//     VecPosition posAgent = WM->getAgentGlobalPosition();
+//     VecPosition posBall = WM->getBallPos();
 
-                // Enemy goalie stuff
-                ObjectT enemyGoalie = WM->getOppGoalieType();
-                VecPosition enemyGoaliePos = WM->getGlobalPosition(enemyGoalie);
+//     // This integer holds how much cycles the closest ally need
+//     // to reach the ball
+//     int iCyclesNeeded;
 
-                // Enemy goal stuff
-                VecPosition posGoalTarget = (WM->getSide() != SIDE_LEFT)
-                                        ? SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_L, SIDE_LEFT)
-                                        : SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_RIGHT);
+//     // Before match begins
+//     if (WM->isBeforeKickOff()) {
+//         // move (teleport) to formation
+//         // #9 passes to closest friendly player
+//     } else {
+//         formations->setFormation(ERUS_DEFAULT_FORMATION);
+//         soc.commandType = CMD_ILLEGAL;
 
-                // Our casts
-                Line rcast = Line::makeLineFromTwoPoints(posBall, posGoalTarget);
-                Line rcast_goalie = Line::makeLineFromTwoPoints(posBall, enemyGoaliePos);
+//         // Search for ball
+//         if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
+//             ACT->putCommandInQueue(soc = searchBall());
+//             ACT->putCommandInQueue(alignNeckWithBody());
+//         }
+//             // if we know where the ball is, we can kick it!
+//         else if (WM->isBallKickable()) {
+//             // old idea: kick to goal directly
+//             // new architecture:
+//             // raycast to goal; can our kick reach it?
+//             // if it can't, can we approach it? are there any obstacles?
+//             // if there are, can we pass to someone in a better position?
+//             // if we can't, then we messed up; retreat to midfielders
+//             // however, if our kick can't reach the goal,
+//             // but there are no obstacles, can we approach the goal?
+//             // if we can, we do it.
+//             // if we can't approach, we'll try to pass to someone on a
+//             // better position;
 
-                if (/* raycast to goal, goalie position ok */ true) {
-                    /* generate kick arc (left and right from goal) */
-                    /* check where it'll be the hardest for the goalie to catch*/
-                    /* maybe check if some teammate can kick better than us */
-                    if (/* are the conditions optimal? */ true) {
-                        /* kick! */
-                    }
-                } else /* if the goalie is messing with our kick */
-                {
-                    if (/* there is some teammate on a decent position*/ true) {
-                        /* try to pass */
-                    } else /* if there are no teammates positioned */
-                    {
+//             /* if the distance to goal is good enough... */
+//             if (posAgent.getDistanceTo(WM->getPosOpponentGoal()) < 10.0) {
+//                 /* ...we can try to keep on keeping up */
+//                 // make line between own goal and the ball
 
-                        /* (we have to trust that our teammate is on the best
-                         *  possible position) 
-                         */
+//                 // Enemy goalie stuff
+//                 ObjectT enemyGoalie = WM->getOppGoalieType();
+//                 VecPosition enemyGoaliePos = WM->getGlobalPosition(enemyGoalie);
 
-                        /* return ball to midfielders */
-                    }
-                }
-            } else /* if we're not close enough to goal to kick confidently */
-            {
-                if (/* can we approach the goal safely? */ true) {
-                    /* dribble with the ball to approach the goal */
-                } else /* there are some kind of obstacle (probably an enemy)
-                 on the way*/
-                {
-                    if (/* can we dribble the obstacle safely? */ true) {
-                        /* then let's try it */
-                    } else /* if we're not confident that dribbling is the best action */
-                    {
-                        if (/* are there any allies on a good position? */ true) {
-                            /* pass ball to ally */
-                        } else /* there are no allies on good positions */
-                        {
-                            /* return ball to midfielders*/
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return soc;
-}
+//                 // Enemy goal stuff
+//                 VecPosition posGoalTarget = (WM->getSide() != SIDE_LEFT)
+//                                         ? SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_L, SIDE_LEFT)
+//                                         : SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_RIGHT);
+
+//                 // Our casts
+//                 Line rcast = Line::makeLineFromTwoPoints(posBall, posGoalTarget);
+//                 Line rcast_goalie = Line::makeLineFromTwoPoints(posBall, enemyGoaliePos);
+
+//                 if (/* raycast to goal, goalie position ok */ true) {
+//                     /* generate kick arc (left and right from goal) */
+//                     /* check where it'll be the hardest for the goalie to catch*/
+//                     /* maybe check if some teammate can kick better than us */
+//                     if (/* are the conditions optimal? */ true) {
+//                         /* kick! */
+//                     }
+//                 } else /* if the goalie is messing with our kick */
+//                 {
+//                     if (/* there is some teammate on a decent position*/ true) {
+//                         /* try to pass */
+//                     } else /* if there are no teammates positioned */
+//                     {
+
+//                         /* (we have to trust that our teammate is on the best
+//                          *  possible position) 
+//                          */
+
+//                         /* return ball to midfielders */
+//                         /* (or clear ball) */
+//                     }
+//                 }
+//             } else /* if we're not close enough to goal to kick confidently */
+//             {
+//                 if (/* can we approach the goal safely? */ true) {
+//                     /* dribble with the ball to approach the goal */
+//                 } else /* there are some kind of obstacle (probably an enemy)
+//                  on the way*/
+//                 {
+//                     if (/* can we dribble the obstacle safely? */ true) {
+//                         /* then let's try it */
+//                     } else /* if we're not confident that dribbling is the best action */
+//                     {
+//                         if (/* are there any allies on a good position? */ true) {
+//                             /* pass ball to ally */
+//                         } else /* there are no allies on good positions */
+//                         {
+//                             /* return ball to midfielders */
+//                             /* (or clear ball) */
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else /* if ball is not kickable */
+//         // if we'll get to the ball the fastest from our allies and
+//         // the game state allows we to try to move to it
+//         if(WM->getFastestInSetTo(OBJECT_SET_TEAMMATES, OBJECT_BALL, &iCyclesNeeded) == WM->getAgentObjectType() 
+//            && !WM->isDeadBallThem()) {
+
+//         }
+//     }
+//     return soc;
+// }
