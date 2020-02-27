@@ -346,9 +346,20 @@ SoccerCommand Player::erus_attacker() {
             VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
             (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
             (meuPontoMaisProxGol.getY() > traveEsquerda.getY()) ? meuPontoMaisProxGol.setY(traveEsquerda.getY() - 2) : 0;
-            soc = directPass(pos, PASS_NORMAL);
-            ACT->putCommandInQueue( soc );
-            ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
+
+            /* if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY () <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
+             */    /* kick!*/
+                soc = directPass(meuPontoMaisProxGol, PASS_NORMAL);
+            /* }else{
+                ObjectT aliado = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
+                VecPosition posChute = (aliado != OBJECT_ILLEGAL) ? WM->getGlobalPosition(aliado) : (PITCH_LENGTH / 2.0,
+                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
+                                    0.4 * SS->getGoalWidth());
+                soc = directPass(pos, PASS_NORMAL);
+            } */
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            Log.log(100, "kick ball");
         } else if (WM->getFastestInSetTo(OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
                    !WM->isDeadBallThem()) { // if fastest to ball
             Log.log(100, "I am fastest to ball; can get there in %d cycles", iTmp);
