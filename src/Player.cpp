@@ -266,13 +266,13 @@ SoccerCommand Player::goalieMainLoop() {
 
 SoccerCommand Player::defenderMainLoop( )
 {
-  return erus_defense();
+  return carry();
 }
 
 /*! This is the main decision loop for a midfielder. */
 SoccerCommand Player::midfielderMainLoop( )
 {
-  return erus_midfielder() ;
+  return carry() ;
 }
 
 /*! This is the main decision loop for an agent. */
@@ -685,7 +685,7 @@ void Player::makeBallInfo(VecPosition posBall, VecPosition velBall, int iDiff,
     return;
 }
 
-/*! This method is called when a penalty kick has to be taken (for both the 
+/*! This method is called when a penalty kick has to be taken (for both the
   goalkeeper as the player who has to take the penalty. */
 void Player::performPenalty() {
     VecPosition pos;

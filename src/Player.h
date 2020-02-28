@@ -69,13 +69,13 @@ class Player:public BasicPlayer
   Time          m_timeLastSay;           /*!< last time communicated         */
   ObjectT       m_objMarkOpp;            /*!< last marked opponent           */
   ObjectT       m_objPassOption;         /*!< passing option in kick         */
-  
+
   int           m_iPenaltyNr;            /*!< number of current penalty      */
 
   ActionT       m_actionPrev;            /*!< previous action of this agent  */
 
-  
-	
+
+
   SoccerCommand goalieMainLoop            (                                  );
   SoccerCommand defenderMainLoop          (                                  );
   SoccerCommand midfielderMainLoop        (                                  );
@@ -95,9 +95,9 @@ class Player:public BasicPlayer
   void          sayBallStatus             ( char *         str               );
   void          makeBallInfo              ( VecPosition    posBall,
                                             VecPosition    velBall,
-                                            int            iDiff, 
+                                            int            iDiff,
                                             char *         str               );
- 
+
 public:
   Player                                  ( ActHandler     *a,
                                             WorldModel     *wm,
@@ -118,16 +118,17 @@ public:
 
   // simple teams (PlayerTeams.cpp)
   SoccerCommand deMeer5                   (                                  );
+  SoccerCommand carry                     (                                  );
   SoccerCommand deMeer5_goalie            (                                  );
-  
+
 
   // dummy teams for debuging
   SoccerCommand dummyBehaviour            (                                  );
-  
+
   // erus team behaviour (IRONCup 2020)
   SoccerCommand erus_attacker             (                                  );
   SoccerCommand erus_goalie               (                                  );
-  SoccerCommand erus_midfielder           (                                  );  
+  SoccerCommand erus_midfielder           (                                  );
   SoccerCommand erus_defense              (                                  );
 };
 
