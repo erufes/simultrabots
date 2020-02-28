@@ -356,14 +356,19 @@ SoccerCommand Player::erus_attacker() {
             }
         } else if (WM->isBallKickable()) // if kickable
         {
-            VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
-                    traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_T, SIDE_LEFT),
-                    traveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_B, SIDE_LEFT);
+            VecPosition posGoleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
+                    posTraveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_T, SIDE_LEFT),
+                    posTraveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_B, SIDE_LEFT);
+            // TODO: Checar isso aqui em uma função separada (se o vetor posição é válido!)
+            // Se a posição do goleiro for inválida, possivelmente não há goleiro, ou não sabemos a posição do goleiro
+            if(posGoleiro.getX() != UnknownDoubleValue || posGoleiro.getY() != UnknownDoubleValue) {
+                // ???
+            }
             // Descobrir a parte em que o goleiro está protegendo mais
-            Line gol = Line::makeLineFromTwoPoints(traveDireita, traveEsquerda);
+            Line gol = Line::makeLineFromTwoPoints(posTraveDireita, posTraveEsquerda);
             VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
-            (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
-            (meuPontoMaisProxGol.getY() > traveEsquerda.getY()) ? meuPontoMaisProxGol.setY(traveEsquerda.getY() - 2)
+            (meuPontoMaisProxGol.getY() < posTraveDireita.getY()) ? meuPontoMaisProxGol.setY(posTraveDireita.getY() + 2) : 0;
+            (meuPontoMaisProxGol.getY() > posTraveEsquerda.getY()) ? meuPontoMaisProxGol.setY(posTraveEsquerda.getY() - 2)
                                                                 : 0;
 
             double distToMe1, distToMe2, minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
@@ -392,9 +397,9 @@ SoccerCommand Player::erus_attacker() {
                     return soc;
                 }
             }
-            else */ if ((goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+            else */ if ((posGoleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
                          posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY()) ||
-                        (goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+                        (posGoleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
                          posAgent.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY())) {
                 // kick!
                 soc = directPass(meuPontoMaisProxGol, PASS_NORMAL);
