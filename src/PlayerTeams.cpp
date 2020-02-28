@@ -295,9 +295,10 @@ SoccerCommand Player::erus_attacker() {
     VecPosition posAgent = WM->getAgentGlobalPosition();
     VecPosition posBall = WM->getBallPos();
     int iTmp;
+    PlayModeT jogo = WM->getPlayMode();
 
-    ObjectT       prox = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
-    VecPosition   pos = WM->getGlobalPosition(prox);
+    /* ObjectT       prox = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
+    VecPosition   pos = WM->getGlobalPosition(prox); */
 
     if (WM->isBeforeKickOff()) {
         if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
@@ -336,7 +337,17 @@ SoccerCommand Player::erus_attacker() {
         if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
             ACT->putCommandInQueue(soc = searchBall());  // if ball pos unknown
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
-        } else if (WM->isBallKickable()) // if kickable
+        } else if( jogo == PM_FREE_KICK_FAULT_LEFT || jogo == PM_FREE_KICK_FAULT_RIGHT || jogo == PM_FREE_KICK_LEFT
+                    || jogo == PM_FREE_KICK_RIGHT || jogo == PM_INDIRECT_FREE_KICK_RIGHT || jogo == PM_INDIRECT_FREE_KICK_LEFT
+                    || jogo == PM_CORNER_KICK_LEFT || jogo == PM_CORNER_KICK_RIGHT){
+                if (WM->isBallKickable()){
+                    soc = kickTo(VecPosition(0, posAgent.getY() * 2.0), 2.0);
+                    ACT->putCommandInQueue(soc);
+                    ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+                }else{
+                    ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+                }
+        }else if (WM->isBallKickable()) // if kickable
         {
             VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
                         traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_T, SIDE_LEFT),
@@ -347,15 +358,47 @@ SoccerCommand Player::erus_attacker() {
             (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
             (meuPontoMaisProxGol.getY() > traveEsquerda.getY()) ? meuPontoMaisProxGol.setY(traveEsquerda.getY() - 2) : 0;
 
-            if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY () <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
-                /* kick!*/
+            double distToMe1, distToMe2, minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
+            ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe1),
+                    candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe2);
+            double distToGoal1 = WM->getGlobalPosition(candidato1).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato1))),
+                    distToGoal2 = WM->getGlobalPosition(candidato2).getDistanceTo(gol.getPointOnLineClosestTo(WM->getGlobalPosition(candidato2)));
+            
+            ObjectT aliado = OBJECT_ILLEGAL;
+            
+            // Se alguém estiver mais próximo de mim do que eu estou do gol e mais próximo do gol do que eu estou do gol, é o aliado que vai ganhar o chute
+            if (distToMe1 < minhaDistGol && distToGoal1 < minhaDistGol){
+                aliado = candidato1;
+            }else if(distToMe2 < minhaDistGol && distToGoal2 < minhaDistGol){
+                aliado = candidato2;
+            }
+            // Se existe aliado com melhores condições de chute:
+            /* if (aliado !=OBJECT_ILLEGAL){
+                VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && aliadoPontoMaisProxGol.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && aliadoPontoMaisProxGol.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
+                    soc = directPass(WM->getGlobalPosition(aliado), PASS_NORMAL);
+                    ACT->putCommandInQueue(soc);
+                    ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+                    return soc;
+                }
+            }
+            else */ if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && posAgent.getY () <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
+                // kick!
                 soc = directPass(meuPontoMaisProxGol, PASS_NORMAL);
             }else{
-                /* ObjectT aliado = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE);
-                VecPosition posChute = (aliado != OBJECT_ILLEGAL) ? WM->getGlobalPosition(aliado) : (PITCH_LENGTH / 2.0,
-                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
-                                    0.4 * SS->getGoalWidth()); */
-                soc = directPass(pos, PASS_NORMAL);
+                // Se eu não tinha boas condições de chute, considerar um dos aliados mesmo assim
+                aliado = (distToGoal1 < distToGoal2) ? candidato1 : candidato2;
+
+                // se o aliado tem chance de gol, passe!!
+                /* if (aliado !=OBJECT_ILLEGAL){
+                    VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
+                    if ( ( goleiro.getY() < enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() >= enemyGoaliePos.getY() ) || ( goleiro.getY() > enemyGoaliePos.getY() && aliadoPontoMaisProxGol.getY() <= enemyGoaliePos.getY() ) ){
+                        // Passe!
+                        soc = directPass(WM->getGlobalPosition(aliado), PASS_NORMAL);
+                    }
+                }else */{
+                    soc = dashToPoint(VecPosition(meuPontoMaisProxGol.getX(), SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_T_L_40, SIDE_LEFT).getY()));
+                }
             }
             ACT->putCommandInQueue(soc);
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
