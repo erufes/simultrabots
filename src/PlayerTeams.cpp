@@ -336,7 +336,7 @@ SoccerCommand Player::erus_midfielder(  )
           ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
           ACT->putCommandInQueue(soc);
         }
-        else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 4)) < 2) {
+        else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 6)) < 2) {
             soc = directPass(al1, PASS_FAST);
             ACT->putCommandInQueue(soc);
         }
