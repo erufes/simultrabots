@@ -119,8 +119,6 @@ public:
   // simple teams (PlayerTeams.cpp)
   SoccerCommand deMeer5                   (                                  );
   SoccerCommand deMeer5_goalie            (                                  );
-  SoccerCommand erus_midfielder           (                                  );  
-  SoccerCommand erus_defense              (                                  );
   
 
   // dummy teams for debuging
@@ -129,7 +127,8 @@ public:
   // erus team behaviour (IRONCup 2020)
   SoccerCommand erus_attacker             (                                  );
   SoccerCommand erus_goalie               (                                  );
-  
+  SoccerCommand erus_midfielder           (                                  );  
+  SoccerCommand erus_defense              (                                  );
 };
 
 #endif
