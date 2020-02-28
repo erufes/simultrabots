@@ -599,43 +599,43 @@ SoccerCommand Player::erus_defense(  )
     }
     else if(  WM->isBallKickable())
     {
-        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && int1.getX()==0.0 && int1.getY()==0.0 && int2.getX()==0.0 && int2.getY()==0.0 )
+        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING) && int1.getX()==0.0 && int1.getY()==0.0 && int2.getX()==0.0 && int2.getY()==0.0 )
+        else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) && int3.getX()==0.0 && int3.getY()==0.0 && int4.getX()==0.0 && int4.getY()==0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX()==0.0 && int3.getY()==0.0 && int4.getX()==0.0 && int4.getY()==0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER) && int1.getX()==0.0 && int1.getY()==0.0 && int2.getX()==0.0 && int2.getY()==0.0 )
+        else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER) && int3.getX()==0.0 && int3.getY()==0.0 && int4.getX()==0.0 && int4.getY()==0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if(int1.getX()==0.0 && int1.getY()==0.0 && int2.getX()==0.0 && int2.getY()==0.0 )
+        else if(int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
