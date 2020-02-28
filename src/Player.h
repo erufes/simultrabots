@@ -85,6 +85,8 @@ class Player:public BasicPlayer
 
 
   VecPosition   getDeadBallPosition       (                                  );
+  VecPosition   best_goalie_kick          (                                  );
+  VecPosition   best_goalie_freekick      (                                  );
 
   // methods associated with saying (defined in Player.C)
   bool          shallISaySomething        ( SoccerCommand  soc               );
@@ -121,9 +123,10 @@ public:
   // dummy teams for debuging
   SoccerCommand dummyBehaviour            (                                  );
   
+  // erus team behaviour (IRONCup 2020)
   SoccerCommand erus_attacker             (                                  );
-
-
+  SoccerCommand erus_goalie               (                                  );
+  
 };
 
 #endif

@@ -259,7 +259,7 @@ void Player::mainLoop() {
 
 /*! This is the main decision loop for the goalkeeper. */
 SoccerCommand Player::goalieMainLoop() {
-    return deMeer5_goalie();
+    return erus_goalie();
 }
 
 /*! This is the main decision loop for a defender. */
