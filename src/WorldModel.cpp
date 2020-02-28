@@ -2531,5 +2531,5 @@ bool WorldModel::isSpecialSituation() const {
 // Portanto, fica esse pequeno hack aqui no meio, se possível, tente reescrever isso aqui
 // de forma mais elegante no futuro!
 bool WorldModel::isValidPosition(VecPosition v) const {
-    return v.getX != UnknownDoubleValue && v.getY != UnknownDoubleValue;
+    return v.getX() != UnknownDoubleValue && v.getY() != UnknownDoubleValue;
 }

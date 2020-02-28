@@ -364,11 +364,17 @@ SoccerCommand Player::erus_attacker() {
             // Descobrir a parte em que o goleiro está protegendo mais
             Line gol = Line::makeLineFromTwoPoints(posTraveDireita, posTraveEsquerda);
             VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
-            (meuPontoMaisProxGol.getY() < posTraveDireita.getY()) ? meuPontoMaisProxGol.setY(posTraveDireita.getY() + 2) : 0;
-            (meuPontoMaisProxGol.getY() > posTraveEsquerda.getY()) ? meuPontoMaisProxGol.setY(posTraveEsquerda.getY() - 2)
-                                                                : 0;
 
-            double distToMe1, distToMe2, minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
+            // pietroluongo: não entendi muito bem a lógica disso aqui embaixo...
+            if(meuPontoMaisProxGol.getY() < posTraveDireita.getY()) {
+                meuPontoMaisProxGol.setY(posTraveDireita.getY() + 2);
+            }
+            if(meuPontoMaisProxGol.getY() > posTraveEsquerda.getY()) {
+                meuPontoMaisProxGol.setY(posTraveEsquerda.getY() - 2);
+            }
+
+            double distToMe1, distToMe2;
+            double minhaDistGol = meuPontoMaisProxGol.getDistanceTo(posAgent);
             ObjectT candidato1 = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe1),
                     candidato2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE, &distToMe2);
             double distToGoal1 = WM->getGlobalPosition(candidato1).getDistanceTo(
@@ -385,19 +391,22 @@ SoccerCommand Player::erus_attacker() {
                 aliado = candidato2;
             }
             // Se existe aliado com melhores condições de chute:
-            /* if (aliado !=OBJECT_ILLEGAL){
+            if (aliado != OBJECT_ILLEGAL){
                 VecPosition aliadoPontoMaisProxGol = gol.getPointOnLineClosestTo(WM->getGlobalPosition(aliado));
-                if ( ( goleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && aliadoPontoMaisProxGol.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) || ( goleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() && aliadoPontoMaisProxGol.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
+                if ( ( posGoleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+                    aliadoPontoMaisProxGol.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ||
+                    ( posGoleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+                    aliadoPontoMaisProxGol.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() ) ){
                     soc = directPass(WM->getGlobalPosition(aliado), PASS_NORMAL);
                     ACT->putCommandInQueue(soc);
                     ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
                     return soc;
                 }
             }
-            else */ if ((posGoleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
-                         posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY()) ||
-                        (posGoleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
-                         posAgent.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY())) {
+            else if ((posGoleiro.getY() < SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+                      posAgent.getY() >= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY()) ||
+                     (posGoleiro.getY() > SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY() &&
+                      posAgent.getY() <= SoccerTypes::getGlobalPositionFlag(OBJECT_GOAL_R, SIDE_LEFT).getY())) {
                 // kick!
                 soc = directPass(meuPontoMaisProxGol, PASS_NORMAL);
             } else {
