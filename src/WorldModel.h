@@ -906,6 +906,11 @@ public:
 	
   int getCycleLastCollisionPlayer( ) const;
   int getCycleLastCollisionBall( ) const;		
+
+  // ERUS - IRONCUP 2020
+  bool isSpecialSituation() const;
+  bool isValidPosition(VecPosition v) const;
+
 };
 
 #endif

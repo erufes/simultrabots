@@ -343,10 +343,7 @@ SoccerCommand Player::erus_attacker() {
         if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
             ACT->putCommandInQueue(soc = searchBall());  // if ball pos unknown
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
-        } else if (jogo == PM_FREE_KICK_FAULT_LEFT || jogo == PM_FREE_KICK_FAULT_RIGHT || jogo == PM_FREE_KICK_LEFT
-                   || jogo == PM_FREE_KICK_RIGHT || jogo == PM_INDIRECT_FREE_KICK_RIGHT ||
-                   jogo == PM_INDIRECT_FREE_KICK_LEFT
-                   || jogo == PM_CORNER_KICK_LEFT || jogo == PM_CORNER_KICK_RIGHT) {
+        } else if (WM->isSpecialSituation()) {
             if (WM->isBallKickable()) {
                 soc = kickTo(VecPosition(0, posAgent.getY() * 2.0), 2.0);
                 ACT->putCommandInQueue(soc);
@@ -361,7 +358,7 @@ SoccerCommand Player::erus_attacker() {
                     posTraveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_B, SIDE_LEFT);
             // TODO: Checar isso aqui em uma função separada (se o vetor posição é válido!)
             // Se a posição do goleiro for inválida, possivelmente não há goleiro, ou não sabemos a posição do goleiro
-            if(posGoleiro.getX() != UnknownDoubleValue || posGoleiro.getY() != UnknownDoubleValue) {
+            if(WM->isValidPosition(posGoleiro)) {
                 // ???
             }
             // Descobrir a parte em que o goleiro está protegendo mais

@@ -2713,3 +2713,18 @@ int WorldModel::getCycleLastCollisionBall( ) const
 {
 	return cycleLastCollisionBall;
 }
+
+bool WorldModel::isSpecialSituation() const {
+    return playMode == PM_FREE_KICK_FAULT_LEFT || playMode == PM_FREE_KICK_FAULT_RIGHT || playMode == PM_FREE_KICK_LEFT ||
+           playMode == PM_FREE_KICK_RIGHT || playMode == PM_INDIRECT_FREE_KICK_RIGHT || playMode == PM_INDIRECT_FREE_KICK_LEFT ||
+           playMode == PM_CORNER_KICK_LEFT || playMode == PM_CORNER_KICK_RIGHT;
+}
+
+// pietroluongo: Algo me diz que não faz muito sentido isso estar por aqui...
+// Faria muito mais sentido estar na definição da classe VecPosition, em Geometry.h
+// Contudo, lá não temos a definição de UnknownDoubleValue
+// Portanto, fica esse pequeno hack aqui no meio, se possível, tente reescrever isso aqui
+// de forma mais elegante no futuro!
+bool WorldModel::isValidPosition(VecPosition v) const {
+    return v.getX != UnknownDoubleValue && v.getY != UnknownDoubleValue;
+}
