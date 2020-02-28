@@ -231,13 +231,13 @@ SoccerCommand Player::erus_midfielder(  )
     if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
     ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
     {
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){ 
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 5.0 )) < 2){ 
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
           prev = ally1;
           soc = directPass(al1, PASS_NORMAL);
         }
       }
-      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0)) < 2){
+      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 5.0)) < 2){
         if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
           prev = ally2;
           soc = directPass(al2, PASS_NORMAL);
@@ -245,7 +245,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
     }
     else{
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >= 2){
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 5.0)) >= 2){
         if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
         }
@@ -259,17 +259,13 @@ SoccerCommand Player::erus_midfielder(  )
         }
         else{
           if(WM -> getCurrentCycle() - start > 30){
-            if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){
               if(WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING){
                 soc = directPass(al1, PASS_NORMAL);
               }
-            }
-            else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0 )) < 2){
-              if(WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING){
+              else if(WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING){
                 soc = directPass(al2, PASS_NORMAL);
               }
-            }
-            else{
+              else{
               soc = holdBall();
             }
           }
