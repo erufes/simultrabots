@@ -64,3 +64,6 @@ doc/html
 
 # Logs
 logs
+
+# IDE stuff
+.idea
