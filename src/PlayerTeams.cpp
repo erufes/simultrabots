@@ -186,7 +186,7 @@ SoccerCommand Player::erus_midfielder(  )
   VecPosition previous = WM->getGlobalPosition(prev);
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
-    VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
+  VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
 
   if( WM->isBeforeKickOff( ) )
   {
@@ -218,7 +218,7 @@ SoccerCommand Player::erus_midfielder(  )
   }
   else
   {
-    formations->setFormation( FT_433_OFFENSIVE );
+    formations->setFormation( ERUS_DEFAULT_FORMATION );
     soc.commandType = CMD_ILLEGAL;
 
     if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
@@ -516,7 +516,7 @@ SoccerCommand Player::erus_defense() {
             ACT->putCommandInQueue(alignNeckWithBody());
         }
     } else {
-        formations->setFormation(FT_433_OFFENSIVE);
+        formations->setFormation( ERUS_DEFAULT_FORMATION );
         soc.commandType = CMD_ILLEGAL;
 
         if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
