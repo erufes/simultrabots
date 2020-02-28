@@ -305,7 +305,12 @@ SoccerCommand Player::erus_midfielder(  )
      }
      else
      {
-        soc = mark(opponent1, 0.5, MARK_BALL );                    // nothing to do
+       if(WM -> isBallInOurPossesion()){
+        ACT->putCommandInQueue( SoccerCommand(CMD_TURNNECK,0.0) );
+      }
+       else{
+        soc = mark(opponent1, 0.5, MARK_BALL );
+      }                    // nothing to do
        ACT->putCommandInQueue( soc);
      }
    }
