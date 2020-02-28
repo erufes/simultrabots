@@ -27,7 +27,7 @@ set pconf = "${dir}/player.conf"
 set fconf = "${dir}/formations.conf"
 
 echo "*****************************************************************"
-echo "* UvA_Trilearn 2003 - University of Amsterdam, The Netherlands  *"
+echo "* ERUS ULTRABOTS 2020 - Universidade Federal do Espírito Santo  *"
 echo "* Base code version                                             *"
 echo "* Created by:           Jelle Kok                               *"
 echo "* Research Coordinator: Nikos Vlassis                           *" 
@@ -36,6 +36,7 @@ echo "* Copyright 2000-2001.  Jelle Kok and Remco de Boer             *"
 echo "* Copyright 2001-2002.  Jelle Kok                               *"
 echo "* Copyright 2002-2003.  Jelle Kok                               *"
 echo "* Copyright 2007-2008.  Jelle Kok and Mahdi Nami Damirchi       *"
+echo "* Modified in 2020      ERUS - Equipe de Robótica da UFES       *"
 echo "* All rights reserved.                                          *"
 echo "*****************************************************************"
 
@@ -61,7 +62,7 @@ if( $1 =~ [0123456789]* && $1 !~ *.* ) then
       ${prog} -num ${arg} -host ${host} -team ${team} -f ${fconf} -c ${pconf} -o ./logs/log_${arg} &
       sleep $wait
     else if( $arg =~ [0]* ) then
-      sleep 2
+      sleep 1
       ${coach} -host ${host} -team ${team} -f ${fconf} &
     endif
   end
@@ -72,7 +73,7 @@ else
     sleep $wait
     @ i++
   end
-  sleep 2
+  sleep 1
   ${coach} -host ${host} -team ${team} -f ${fconf}  &
 endif
 
