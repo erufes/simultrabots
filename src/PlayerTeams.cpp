@@ -186,7 +186,7 @@ SoccerCommand Player::erus_midfielder(  )
   VecPosition previous = WM->getGlobalPosition(prev);
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
-    VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
+  VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
 
   if( WM->isBeforeKickOff( ) )
   {
@@ -218,7 +218,7 @@ SoccerCommand Player::erus_midfielder(  )
   }
   else
   {
-    formations->setFormation( FT_433_OFFENSIVE );
+    formations->setFormation( ERUS_DEFAULT_FORMATION );
     soc.commandType = CMD_ILLEGAL;
 
     if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
@@ -551,7 +551,7 @@ SoccerCommand Player::erus_defense() {
             ACT->putCommandInQueue(alignNeckWithBody());
         }
     } else {
-        formations->setFormation(FT_433_OFFENSIVE);
+        formations->setFormation( ERUS_DEFAULT_FORMATION );
         soc.commandType = CMD_ILLEGAL;
 
         if (WM->getConfidence(OBJECT_BALL) < PS->getBallConfThr()) {
@@ -637,13 +637,12 @@ SoccerCommand Player::erus_attacker() {
                 // Maybe pass to north-facing or south-facing players...?
                 ObjectT closestPlayer = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, posAgent);
                 // TODO: Magic numbers!
-                ObjectT playera = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, -10));
-                ObjectT playerb = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, 10));
+                //ObjectT playera = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, -10));
+                //ObjectT playerb = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, 10));
                 // Talvez achar alguma forma de randomizar para qual player passar a bola aqui seria bom!
                 // soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
-                Log.log(100, "kicking off to player at position " + WM->getGlobalPosition(playera).str() + "\n");
-                soc = directPass(WM->getGlobalPosition(playera), PASS_NORMAL);
-                soc = dribble(0, DRIBBLE_WITHBALL);
+                Log.log(100, "kicking off to player at position " + WM->getGlobalPosition(closestPlayer).str() + "\n");
+                soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
                 Log.log(100, "take kick off");
             } else {
                 soc = intercept(false);
@@ -674,15 +673,20 @@ SoccerCommand Player::erus_attacker() {
             ACT->putCommandInQueue(soc = searchBall());  // if ball pos unknown
             ACT->putCommandInQueue(alignNeckWithBody()); // search for it
             Log.log(100, "Searching for ball...");
-        } else if (WM->isSpecialSituation()) {
-            if (WM->isBallKickable()) {
-                soc = kickTo(VecPosition(0, posAgent.getY() * 2.0), 2.0);
-                Log.log(100, "Dando um chutão");
-                ACT->putCommandInQueue(soc);
-                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            } else {
-                ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+        } else if(WM->isFreeKickUs() || WM->isCornerKickUs() || WM->isKickInUs() || (WM->getPlayMode() == PM_INDIRECT_FREE_KICK_LEFT && WM->getSide() == SIDE_LEFT) || ( WM->getPlayMode() == PM_INDIRECT_FREE_KICK_RIGHT && WM->getSide() == SIDE_RIGHT)){
+            if(WM->getFastestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
+                   !WM->isDeadBallThem()){
+                if (WM->isBallKickable()) {
+                    soc = directPass(WM->getGlobalPosition(WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE)), PASS_NORMAL);
+                    Log.log(100, "Dando um chutão");
+                    ACT->putCommandInQueue(soc);
+                } else {
+                    soc = intercept(false);
+                    Log.log(100, "Teleportando");
+                    ACT->putCommandInQueue(soc);                        
+                }
             }
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
         } else if (WM->isBallKickable()) // if kickable
         {
             Log.log(100, "A bola é chutável pra mim.");
