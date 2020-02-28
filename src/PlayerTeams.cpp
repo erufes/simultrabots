@@ -226,34 +226,34 @@ SoccerCommand Player::erus_midfielder(  )
       ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
     }
-  else if(WM->isBallInOurPossesion()){
+  else if(WM->isBallKickable()){
 
     if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
     ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
     {
-      if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){ 
-        if(getPlayerType(ally1) == PT_MIDFIELDER_CENTER || getPlayerType(ally1) == PT_MIDFIELDER_WING){
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){ 
+        if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
           prev = ally1;
           soc = directPass(al1, PASS_NORMAL);
         }
       }
-      else if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0)) < 2){
-        if((getPlayerType(ally2) == PT_MIDFIELDER_CENTER || getPlayerType(ally2) == PT_MIDFIELDER_WING)){
+      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0)) < 2){
+        if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
           prev = ally2;
           soc = directPass(al2, PASS_NORMAL);
         }
       }
     }
     else{
-      if(getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >= 2){
-        if((getPlayerType(ally1) == PT_ATTACKER || getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 10.0)) >= 2){
+        if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
         }
-        else if((getPlayerType(ally2) == PT_ATTACKER || getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
+        else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
           soc = directPass(al2, PASS_NORMAL);
         }
       }
-      else if{
+      else{
         if((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)){
           soc = directPass(previous, PASS_NORMAL);
         }
@@ -305,7 +305,7 @@ SoccerCommand Player::erus_midfielder(  )
      }
      else
      {
-        soc = mark(opp1, 0.5, MARK_BALL );                    // nothing to do
+        soc = mark(opponent1, 0.5, MARK_BALL );                    // nothing to do
        ACT->putCommandInQueue( soc);
      }
    }
