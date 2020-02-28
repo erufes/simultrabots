@@ -227,49 +227,99 @@ SoccerCommand Player::erus_midfielder(  )
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
     }
   else if(WM->isBallKickable()){
+    if(WM->isFreeKickUs() || WM->isCornerKickUs() || WM->isKickInUs() || (WM->getPlayMode() == PM_INDIRECT_FREE_KICK_LEFT && WM->getSide() == SIDE_LEFT) || ( WM->getPlayMode() == PM_INDIRECT_FREE_KICK_RIGHT && WM->getSide() == SIDE_RIGHT)){
+            if(WM->getFastestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE, OBJECT_BALL, &iTmp) == WM->getAgentObjectType() &&
+                   !WM->isDeadBallThem()){
+                if (WM->isBallKickable()) {
+                    soc = directPass(WM->getGlobalPosition(WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE)), PASS_NORMAL);
+                    Log.log(100, "Dando um chutão");
+                    ACT->putCommandInQueue(soc);
+                } else {
+                    soc = intercept(false);
+                    Log.log(100, "Teleportando");
+                    ACT->putCommandInQueue(soc);                        
+                }
+            }
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+    }
 
-    if( ((posAgent.getDistanceTo(opp1) < 2.0) && (posAgent.getDistanceTo(opp2) < 2.0) ||
+    else if( ((posAgent.getDistanceTo(opp1) < 2.0) && (posAgent.getDistanceTo(opp2) < 2.0) ||
     ((posAgent.getDistanceTo(opp1) < 1.0) || (posAgent.getDistanceTo(opp2) < 1.0))))
     {
       if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 2.0 )) < 2){ 
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
-          prev = ally1;
-          soc = directPass(al1, PASS_NORMAL);
-          ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                prev = ally1;
+                soc = directPass(al1, PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            }
         }
       }
       else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 2.0)) < 2){
         if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
-          prev = ally2;
-          soc = directPass(al2, PASS_NORMAL);
-          ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally2) < PS->getPlayerConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally2, soc));
+            }
+            else{
+                prev = ally2;
+                soc = directPass(al2, PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            }
         }
       }
     }
     else{
       if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 2.0)) >= 2){
         if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
-          soc = directPass(al1, PASS_NORMAL);
-          ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+            soc = directPass(al1, PASS_NORMAL);
+            ACT->putCommandInQueue(soc);
+            }
         }
         else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
-          soc = directPass(al2, PASS_NORMAL);
-          ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            ACT->putCommandInQueue(turnNeckToObject(ally2, soc));
+            }
+            else{
+            soc = directPass(al2, PASS_NORMAL);
+            ACT->putCommandInQueue(soc);
+            }
         }
       }
       else{
         if((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)){
-          soc = directPass(previous, PASS_NORMAL);
-          ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(prev) < PS->getPlayerConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(prev, soc));
+            }
+            else{
+                soc = directPass(previous, PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            }
         }
         else if( WM-> getTimeSinceLastCatch() > 0 && WM->getTimeSinceLastCatch() < 50){
           if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
-            soc = directPass(al1, PASS_NORMAL);
-            ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                soc = directPass(al1, PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            }
           }
           else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
-            soc = directPass(al2, PASS_NORMAL);
-            ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally2) < PS->getPlayerConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                soc = directPass(al2, PASS_NORMAL);
+                ACT->putCommandInQueue(soc);
+            }
           }
         }
         else{
@@ -277,21 +327,6 @@ SoccerCommand Player::erus_midfielder(  )
           ACT->putCommandInQueue(soc);
         }
       }
-    }
-  }
-  else if( WM -> isFreeKickUs() ||  WM -> isCornerKickUs() ){
-    ACT -> putCommandInQueue(moveToPos(posBall, PS->getPlayerWhenToTurnAngle()));
-    if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 5.0)) < 2){
-      soc = directPass(al1, PASS_NORMAL);
-      ACT->putCommandInQueue(soc);
-    }
-    else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 5.0)) < 2){
-      soc = directPass(al2, PASS_NORMAL);
-      ACT->putCommandInQueue(soc);
-    }
-    else{
-      soc = kickTo(posGoal, SS->getBallSpeedMax());
-      ACT->putCommandInQueue(soc);
     }
   }
   else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
