@@ -228,17 +228,19 @@ SoccerCommand Player::erus_midfielder(  )
     }
   else if(WM->isBallKickable()){
 
-    if( ((posAgent.getDistanceTo(opp1) < 2.0) && (posAgent.getDistanceTo(opp2) < 2.0) ||
-    ((posAgent.getDistanceTo(opp1) < 1.0) || (posAgent.getDistanceTo(opp2) < 1.0))))
+    VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
+
+    if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
+    ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
     {
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 2.0 )) < 2){ 
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 5.0 )) < 2){ 
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
           prev = ally1;
           soc = directPass(al1, PASS_NORMAL);
           ACT->putCommandInQueue(soc);
         }
       }
-      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 2.0)) < 2){
+      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 5.0)) < 2){
         if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
           prev = ally2;
           soc = directPass(al2, PASS_NORMAL);
@@ -247,7 +249,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
     }
     else{
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 2.0)) >= 2){
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 5.0)) >= 2){
         if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
           ACT->putCommandInQueue(soc);
@@ -275,6 +277,17 @@ SoccerCommand Player::erus_midfielder(  )
         else{
           soc = kickTo(posGoal, SS->getBallSpeedMax());
           ACT->putCommandInQueue(soc);
+        }
+        else if( WM-> getTimeSinceLastCatch() == 25){
+          if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
+            soc = directPass(al1, PASS_NORMAL);
+          }
+          else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
+            soc = directPass(al2, PASS_NORMAL);
+          }
+        }
+        else{
+          soc = kickTo(posGoal, SS->getBallSpeedMax());
         }
       }
     }
