@@ -186,6 +186,7 @@ SoccerCommand Player::erus_midfielder(  )
   VecPosition previous = WM->getGlobalPosition(prev);
   VecPosition opp1 = WM->getGlobalPosition(opponent1);
   VecPosition opp2 = WM->getGlobalPosition(opponent2);
+    VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
 
   if( WM->isBeforeKickOff( ) )
   {
@@ -227,19 +228,17 @@ SoccerCommand Player::erus_midfielder(  )
     }
   else if(WM->isBallKickable()){
 
-    VecPosition posGoal(PITCH_LENGTH / 2.0, (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS -> getGoalWidth());
-
-    if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
-    ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
+    if( ((posAgent.getDistanceTo(opp1) < 2.0) && (posAgent.getDistanceTo(opp2) < 2.0) ||
+    ((posAgent.getDistanceTo(opp1) < 1.0) || (posAgent.getDistanceTo(opp2) < 1.0))))
     {
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 5.0 )) < 2){ 
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 2.0 )) < 2){ 
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
           prev = ally1;
           soc = directPass(al1, PASS_NORMAL);
           ACT->putCommandInQueue(soc);
         }
       }
-      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 5.0)) < 2){
+      else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 2.0)) < 2){
         if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
           prev = ally2;
           soc = directPass(al2, PASS_NORMAL);
@@ -248,7 +247,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
     }
     else{
-      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 5.0)) >= 2){
+      if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 2.0)) >= 2){
         if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
           soc = directPass(al1, PASS_NORMAL);
           ACT->putCommandInQueue(soc);
@@ -263,7 +262,7 @@ SoccerCommand Player::erus_midfielder(  )
           soc = directPass(previous, PASS_NORMAL);
           ACT->putCommandInQueue(soc);
         }
-        else if( WM-> getTimeSinceLastCatch() > 25 && WM->getTimeSinceLastCatch() < 50){
+        else if( WM-> getTimeSinceLastCatch() > 0 && WM->getTimeSinceLastCatch() < 50){
           if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
             soc = directPass(al1, PASS_NORMAL);
             ACT->putCommandInQueue(soc);
@@ -278,6 +277,21 @@ SoccerCommand Player::erus_midfielder(  )
           ACT->putCommandInQueue(soc);
         }
       }
+    }
+  }
+  else if( WM -> isFreeKickUs() ||  WM -> isCornerKickUs() ){
+    ACT -> putCommandInQueue(moveToPos(posBall, PS->getPlayerWhenToTurnAngle()));
+    if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 5.0)) < 2){
+      soc = directPass(al1, PASS_NORMAL);
+      ACT->putCommandInQueue(soc);
+    }
+    else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 5.0)) < 2){
+      soc = directPass(al2, PASS_NORMAL);
+      ACT->putCommandInQueue(soc);
+    }
+    else{
+      soc = kickTo(posGoal, SS->getBallSpeedMax());
+      ACT->putCommandInQueue(soc);
     }
   }
   else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
