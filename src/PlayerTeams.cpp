@@ -227,7 +227,7 @@ SoccerCommand Player::erus_midfielder(  )
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
     }
   else if(WM->isBallKickable()){
-
+    int start = WM -> getCurrentCycle();
     if( ((posAgent.getDistanceTo(opp1) < 5.0) && (posAgent.getDistanceTo(opp2) < 5.0) ||
     ((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5))))
     {
@@ -256,6 +256,23 @@ SoccerCommand Player::erus_midfielder(  )
       else{
         if((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)){
           soc = directPass(previous, PASS_NORMAL);
+        }
+        else{
+          if(WM -> getCurrentCycle() - start > 30){
+            if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 10.0 )) < 2){
+              if(WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING){
+                soc = directPass(al1, PASS_NORMAL);
+              }
+            }
+            else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 10.0 )) < 2){
+              if(WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING){
+                soc = directPass(al2, PASS_NORMAL);
+              }
+            }
+            else{
+              soc = holdBall();
+            }
+          }
         }
       }
     }
