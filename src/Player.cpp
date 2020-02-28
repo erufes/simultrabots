@@ -263,8 +263,10 @@ SoccerCommand Player::goalieMainLoop() {
 }
 
 /*! This is the main decision loop for a defender. */
-SoccerCommand Player::defenderMainLoop() {
-    return deMeer5();
+
+SoccerCommand Player::defenderMainLoop( )
+{
+  return erus_defense();
 }
 
 /*! This is the main decision loop for a midfielder. */
