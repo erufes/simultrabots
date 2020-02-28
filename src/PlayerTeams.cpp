@@ -243,8 +243,8 @@ SoccerCommand Player::erus_midfielder(  )
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
     }
 
-    else if( ((posAgent.getDistanceTo(opp1) < 2.0) && (posAgent.getDistanceTo(opp2) < 2.0) ||
-    ((posAgent.getDistanceTo(opp1) < 1.0) || (posAgent.getDistanceTo(opp2) < 1.0))))
+    else if( ((posBall.getDistanceTo(opp1) < 2.0) && (posBall.getDistanceTo(opp2) < 2.0) ||
+    ((posBall.getDistanceTo(opp1) < 1.0) || (posBall.getDistanceTo(opp2) < 1.0))))
     {
       if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 2.0 )) < 2){ 
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
@@ -253,7 +253,7 @@ SoccerCommand Player::erus_midfielder(  )
             }
             else{
                 prev = ally1;
-                soc = directPass(al1, PASS_NORMAL);
+                soc = directPass(al1, PASS_FAST);
                 ACT->putCommandInQueue(soc);
             }
         }
@@ -265,7 +265,7 @@ SoccerCommand Player::erus_midfielder(  )
             }
             else{
                 prev = ally2;
-                soc = directPass(al2, PASS_NORMAL);
+                soc = directPass(al2, PASS_FAST);
                 ACT->putCommandInQueue(soc);
             }
         }
@@ -278,7 +278,7 @@ SoccerCommand Player::erus_midfielder(  )
             ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
             }
             else{
-            soc = directPass(al1, PASS_NORMAL);
+            soc = directPass(al1, PASS_FAST);
             ACT->putCommandInQueue(soc);
             }
         }
@@ -287,13 +287,13 @@ SoccerCommand Player::erus_midfielder(  )
             ACT->putCommandInQueue(turnNeckToObject(ally2, soc));
             }
             else{
-            soc = directPass(al2, PASS_NORMAL);
+            soc = directPass(al2, PASS_FAST);
             ACT->putCommandInQueue(soc);
             }
         }
       }
       else{
-        if((posAgent.getDistanceTo(opp1) < 2.5) || (posAgent.getDistanceTo(opp2) < 2.5)){
+        if((posBall.getDistanceTo(opp1) < 2.5) || (posBall.getDistanceTo(opp2) < 2.5)){
             if(WM->getConfidence(prev) < PS->getPlayerConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(prev, soc));
             }
@@ -322,9 +322,27 @@ SoccerCommand Player::erus_midfielder(  )
             }
           }
         }
-        else{
-          soc = kickTo(posGoal, SS->getBallSpeedMax());
+        else if(posBall.getDistanceTo(al1) < 5.0 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))){
+            soc = directPass(al1, PASS_NORMAL);
+            ACT->putCommandInQueue(soc);
+        }
+        else if(posBall.getDistanceTo(al2) < 5.0 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))){
+            soc = directPass(al2, PASS_NORMAL);
+            ACT->putCommandInQueue(soc);
+        }
+        else if(posBall.getDistanceTo(posGoal) < 15){
+            Line target_raycast = Line::makeLineFromTwoPoints(posBall, posGoal);
+          soc = dribble(target_raycast.getBCoefficient(), DRIBBLE_FAST);
+          ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
           ACT->putCommandInQueue(soc);
+        }
+        else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 4)) < 2) {
+            soc = directPass(al1, PASS_FAST);
+            ACT->putCommandInQueue(soc);
+        }
+        else{
+            soc = directPass(al2, PASS_FAST);
+            ACT->putCommandInQueue(soc);
         }
       }
     }
