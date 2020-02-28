@@ -308,7 +308,12 @@ SoccerCommand Player::erus_attacker() {
                 // Re-check this, so it won't pass backwards!
                 // Maybe pass to north-facing or south-facing players...?
                 ObjectT closestPlayer = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, posAgent);
-                soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
+                // TODO: Magic numbers!
+                ObjectT playera = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, -10));
+                ObjectT playerb = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, VecPosition(-10, 10));
+                soc = directPass(WM->getGlobalPosition(playera), PASS_NORMAL);
+                // Talvez achar alguma forma de randomizar para qual player passar a bola aqui seria bom!
+                // soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
                 Log.log(100, "take kick off");
             } else {
                 soc = intercept(false);
