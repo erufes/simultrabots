@@ -304,10 +304,11 @@ SoccerCommand Player::erus_attacker() {
         if (WM->isKickOffUs() && WM->getPlayerNumber() == 9) // 9 takes kick
         {
             if (WM->isBallKickable()) {
-                VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                    (-1 + 2 * (WM->getCurrentCycle() % 2)) *
-                                    0.4 * SS->getGoalWidth());
-                soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maximal
+                // Pass to closest ally, instead of just kicking off randomly
+                // Re-check this, so it won't pass backwards!
+                // Maybe pass to north-facing or south-facing players...?
+                ObjectT closestPlayer = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES, posAgent);
+                soc = directPass(WM->getGlobalPosition(closestPlayer), PASS_NORMAL);
                 Log.log(100, "take kick off");
             } else {
                 soc = intercept(false);
@@ -353,7 +354,7 @@ SoccerCommand Player::erus_attacker() {
             VecPosition goleiro = WM->getGlobalPosition(OBJECT_OPPONENT_GOALIE),
                     traveDireita = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_T, SIDE_LEFT),
                     traveEsquerda = SoccerTypes::getGlobalPositionFlag(OBJECT_FLAG_G_R_B, SIDE_LEFT);
-            // Descobrir A parte em que o goleiro está protegendo mais
+            // Descobrir a parte em que o goleiro está protegendo mais
             Line gol = Line::makeLineFromTwoPoints(traveDireita, traveEsquerda);
             VecPosition meuPontoMaisProxGol = gol.getPointOnLineClosestTo(posAgent);
             (meuPontoMaisProxGol.getY() < traveDireita.getY()) ? meuPontoMaisProxGol.setY(traveDireita.getY() + 2) : 0;
