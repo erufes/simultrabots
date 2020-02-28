@@ -58,7 +58,7 @@ if( $1 =~ [0123456789]* && $1 !~ *.* ) then
     echo "$1"
   foreach arg ($argv)
     if( $arg =~ [123456789]* && $arg !~ *.*) then
-      ${prog} -num ${arg} -host ${host} -team ${team} -f ${fconf} -c ${pconf} &
+      ${prog} -num ${arg} -host ${host} -team ${team} -f ${fconf} -c ${pconf} -o ./logs/log_${arg} &
       sleep $wait
     else if( $arg =~ [0]* ) then
       sleep 2
@@ -68,7 +68,7 @@ if( $1 =~ [0123456789]* && $1 !~ *.* ) then
 else
   set i = 1
   while ( ${i} <12 )
-    ${prog} -log 101 -number ${i} -host ${host} -team ${team}  -f ${fconf} -c ${pconf} &
+    ${prog} -log 100 -number ${i} -host ${host} -team ${team}  -f ${fconf} -c ${pconf} -o ./logs/log_${i} &
     sleep $wait
     @ i++
   end
