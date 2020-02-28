@@ -173,27 +173,28 @@ SoccerCommand Player::erus_defense(  )
 {
 
   SoccerCommand soc(CMD_ILLEGAL);
-  VecPosition   posAgent = WM->getAgentGlobalPosition();
-  VecPosition   posBall  = WM->getBallPos();
+
   int           iTmp;
 
-  ObjectT       prox = WM->getClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
-  ObjectT       prox2 = WM->getSecondClosestInSetTo(OBJECT_SET_TEAMMATES_NO_GOALIE,OBJECT_BALL,NULL,-1.0);
-  ObjectT       enemy = WM->getClosestInSetTo( OBJECT_SET_OPPONENTS,OBJECT_TEAMMATE_UNKNOWN,NULL,-1.0);
-  ObjectT       enemy2 = WM->getSecondClosestInSetTo( OBJECT_SET_OPPONENTS,OBJECT_TEAMMATE_UNKNOWN,NULL,-1.0);
+  ObjectT       prox = WM->getClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE,NULL);
+  ObjectT       prox2 = WM->getSecondClosestRelativeInSet(OBJECT_SET_TEAMMATES_NO_GOALIE,NULL);
+  ObjectT       enemy = WM->getClosestRelativeInSet( OBJECT_SET_OPPONENTS,NULL);
+  ObjectT       enemy2 = WM->getSecondClosestRelativeInSet( OBJECT_SET_OPPONENTS,NULL);
 
+  VecPosition   posAgent = WM->getAgentGlobalPosition();
+  VecPosition   posBall  = WM->getBallPos();
   VecPosition   pos = WM->getGlobalPosition(prox);
   VecPosition   pos2 = WM->getGlobalPosition(prox2);
-  VecPosition   Comp;
 
   Line          lineTeam = Line::makeLineFromTwoPoints( WM->getBallPos(),pos);
   Line          lineTeam2 = Line::makeLineFromTwoPoints( WM->getBallPos(),pos2);
   Line          lineEnemy = Line::makeLineFromTwoPoints( WM->getBallPos(),enemy);
   Line          lineEnemy2 = Line::makeLineFromTwoPoints( WM->getBallPos(),enemy2);
-  VecPosition int1 = lineTeam.getIntersection( lineEnemy );
-  VecPosition int2 = lineTeam.getIntersection( lineEnemy2 );
-  VecPosition int3 = lineTeam2.getIntersection( lineEnemy );
-  VecPosition int4 = lineTeam2.getIntersection( lineEnemy2 );
+
+  VecPosition   int1 = lineTeam.getIntersection( lineEnemy );
+  VecPosition   int2 = lineTeam.getIntersection( lineEnemy2 );
+  VecPosition   int3 = lineTeam2.getIntersection( lineEnemy );
+  VecPosition   int4 = lineTeam2.getIntersection( lineEnemy2 );
 
 
   if( WM->isBeforeKickOff( ) )
@@ -235,10 +236,6 @@ SoccerCommand Player::erus_defense(  )
       ACT->putCommandInQueue( soc = searchBall() );   // if ball pos unknown
       ACT->putCommandInQueue( alignNeckWithBody( ) ); // search for it
     }
-    /*else if(isCornerKickUs( PM_CORNER_KICK_LEFT) || isCornerKickUs( PM_CORNER_KICK_RIGHT))
-    {
-
-    }*/
     else if(  WM->isBallKickable())
     {
         if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && int1.getX()==0.0 && int1.getY()==0.0 && int2.getX()==0.0 && int2.getY()==0.0 )
