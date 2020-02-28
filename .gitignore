@@ -67,3 +67,6 @@ logs
 
 # IDE stuff
 .idea
+
+# Output
+simultrabots.tar.gz
