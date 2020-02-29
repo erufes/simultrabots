@@ -595,49 +595,49 @@ SoccerCommand Player::erus_defense(  )
     }
     else if(  WM->isBallKickable())
     {
-        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING))
+        /*if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && )
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING))
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) )
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING))
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER))
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER))
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else
+        else if()
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        /*else {
+        else {
             VecPosition posGoal(PITCH_LENGTH / 2.0,
                                 (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
 
@@ -646,6 +646,21 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
             Log.log(100, "kick ball");
         }*/
+        if ((formations->getPlayerType(prox) == PT_MIDFIELDER_CENTER || formations->getPlayerType(prox) == PT_MIDFIELDER_WING || formations->getPlayerType(prox) ==PT_DEFENDER_SWEEPER))
+        {
+            soc = directPass(pos, PASS_NORMAL);
+            ACT->putCommandInQueue( soc );
+            ACT->putCommandInQueue(turnNeckToObject( OBJECT_BALL, soc ));
+        }
+        else {
+            VecPosition posGoal(PITCH_LENGTH / 2.0,
+                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
+
+            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            Log.log(100, "kick ball");
+        }
     }
     else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
     == WM->getAgentObjectType()  && !WM->isDeadBallThem() )
