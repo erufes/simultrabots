@@ -220,7 +220,7 @@ SoccerCommand Player::erus_midfielder(  )
   {
     formations->setFormation( ERUS_DEFAULT_FORMATION );
     soc.commandType = CMD_ILLEGAL;
-    PS->setPlayerConfThr(0.8);
+    PS->setPlayerConfThr(0.9);
 
     if( WM->getConfidence( OBJECT_BALL ) < PS->getBallConfThr() )
     {
