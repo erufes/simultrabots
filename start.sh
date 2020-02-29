@@ -1,79 +1,117 @@
-#!/bin/tcsh
-# instalar yum
-# sudo apt install tcsh
+#!/bin/bash
 
+# Variáveis
+WAIT_TIME=0
+HOST="localhost"
+TEAM="ERUS"
+DIR="src"
+PLAYER_BIN="${DIR}/erus_player"
+COACH_BIN="${DIR}/erus_coach"
+P_CONF="${DIR}/player.conf"
+F_CONF="${DIR}/formations.conf"
+LOGLEVEL="100"
 
-# This script starts the UvA_Trilearn_2003 team. When player numbers are 
-# supplied before the (optional) host-name and team-name arguments only
-# these players are started, otherwise all players are started.
-# Usage:   start.sh <player-numbers> <host-name> <team-name>
-#
-# Example: start.sh                 all players default host and name
-# Example: start.sh machine         all players on host 'machine'
-# Example: start.sh localhost UvA   all players on localhost and name 'UvA'
-# Example: start.sh 127.0.0.1 UvA   all players on 127.0.0.1  and name 'UvA'
-# Example: start.sh 1 2 3 4         players 1-4 on default host and name
-# Example: start.sh 1 2 remote      players 1-2 on host 'remote'
-# Example: start.sh 9 10 remote UvA players 9-10 on host remote and name 'UvA'
-# Example: start.sh 0               start coach on default host 
+# Mostra a tela de ajuda com os parâmetros suportados
+show_help () {
+	echo "*********************************************************************"
+	echo "* Lista de parâmetros:                                              *"
+	echo "*                                                                   *"
+	echo "* --h | --help          Mostra a ajuda (esta tela)                  *"
+	echo "*  -h | --host          Define o host do jogo. Padrão: localhost    *"
+	echo "*  -t | --team          Define o nome do time. Padrão: ERUS         *"
+	echo "*  -d | --dir           Define a pasta raiz do projeto. Padrão: src *"
+	echo "*  -l | --log           Define o nível de logging. Padrão: 100      *"
+	echo "*********************************************************************"
+}
 
-set wait  = 0
-set host  = "localhost"
-set team  = "ERUS" 
-set dir   = "src"
-set prog  = "${dir}/erus_player"
-set coach = "${dir}/erus_coach"
-set pconf = "${dir}/player.conf"
-set fconf = "${dir}/formations.conf"
+# Mostra a tela de "boas vindas"
+show_welcome () {
+	echo "*****************************************************************"
+	echo "* ERUS ULTRABOTS 2020 - Universidade Federal do Espírito Santo  *"
+	echo "*                                                               *"
+	echo "* Código original                                               *"
+	echo "*                       Jelle Kok                               *"
+	echo "*                       Nikos Vlassis                           *"
+	echo "*                       Frans Groen                             *"
+	echo "*                       Remco de Boer                           *"
+	echo "*                       Mahdi Nami Damirchi                     *"
+	echo "*                                                               *"
+	echo "* Atualizações para IRONCup 2020                                *"
+	echo "*                       ERUS - Equipe de Robótica da UFES       *"
+	echo "* Licenciado pela GPLv2                                         *"
+	echo "*****************************************************************"
+}
 
-echo "*****************************************************************"
-echo "* ERUS ULTRABOTS 2020 - Universidade Federal do Espírito Santo  *"
-echo "* Base code version                                             *"
-echo "* Created by:           Jelle Kok                               *"
-echo "* Research Coordinator: Nikos Vlassis                           *" 
-echo "* Team Coordinator:     Frans Groen                             *"
-echo "* Copyright 2000-2001.  Jelle Kok and Remco de Boer             *"
-echo "* Copyright 2001-2002.  Jelle Kok                               *"
-echo "* Copyright 2002-2003.  Jelle Kok                               *"
-echo "* Copyright 2007-2008.  Jelle Kok and Mahdi Nami Damirchi       *"
-echo "* Modified in 2020      ERUS - Equipe de Robótica da UFES       *"
-echo "* All rights reserved.                                          *"
-echo "*****************************************************************"
+# Mostra os dados da execução
+show_data () {
+	echo ""
+	echo "Iniciando no host ${HOST}"
+	echo "Nome do time: ${TEAM}"
+	echo "Diretório base: ${DIR}"
+	echo ""
+}
 
-#first check if the last two supplied arguments are no numbers and represent
-#<host-name> or <host-name> <team-name>
-if( $#argv > 0 && ($argv[$#argv] !~ [0123456789]* || $argv[$#argv] =~ *.* ) ) then
-  @ second_last = $#argv - 1  
-  if( $#argv > 1 && ($argv[$second_last] !~ [0123456789]* || $argv[$second_last] =~ *.* ) ) then
-      set host = $argv[$second_last]
-      set team = $argv[$#argv]
-  else
-      set host = $argv[$#argv]
-  endif
-endif
+# Parsing de argumentos
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
 
-#then if first argument is a number, start only the players with the numbers
-#as supplied on the prompt, otherwise start all players.
-if( $1 =~ [0123456789]* && $1 !~ *.* ) then
-  echo "$argv[$#argv]"
-    echo "$1"
-  foreach arg ($argv)
-    if( $arg =~ [123456789]* && $arg !~ *.*) then
-      ${prog} -num ${arg} -host ${host} -team ${team} -f ${fconf} -c ${pconf} -o ./logs/log_${arg} &
-      sleep $wait
-    else if( $arg =~ [0]* ) then
-      sleep 1
-      ${coach} -host ${host} -team ${team} -f ${fconf} &
-    endif
-  end
-else
-  set i = 1
-  while ( ${i} <12 )
-    ${prog} -log 100 -number ${i} -host ${host} -team ${team}  -f ${fconf} -c ${pconf} -o ./logs/log_${i} &
-    sleep $wait
-    @ i++
-  end
-  sleep 1
-  ${coach} -host ${host} -team ${team} -f ${fconf}  &
-endif
+case $key in
+	--h|--help)
+	show_help
+	shift
+	shift
+	exit 0
+	;;
+    -h|--host)
+    HOST="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -t|--team)
+    TEAM="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -d|--dir)
+    DIR="$2"
+    shift # past argument
+    shift # past value
+    ;;
+	-l|--log)
+	LOGLEVEL="$2"
+	shift
+	shift
+	;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
 
+# Script "padrão"
+
+show_welcome
+
+show_data
+
+# Instancia os jogadores
+for i in {1..11}
+do
+	echo "Instanciando player ${i}..."
+	${PLAYER_BIN} -log ${LOGLEVEL} -number ${i} -host ${HOST} -team ${TEAM} -f ${F_CONF} -c ${P_CONF} -o "./logs/log_${i}.txt" &
+	sleep ${WAIT_TIME}
+	echo "OK!"
+done
+sleep 1
+
+echo "Todos os players instanciados"
+
+echo "Instanciando coach..."
+${COACH_BIN} -host ${HOST} -team ${TEAM} -f ${F_CONF} &
+echo "OK!"
+
+echo "Tudo ok no time"
