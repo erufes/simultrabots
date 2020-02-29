@@ -322,30 +322,23 @@ SoccerCommand Player::erus_midfielder(  )
             }
           }
         }
-        else if(posBall.getDistanceTo(al1) < 5.0 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))){
+        else if(posBall.getDistanceTo(al1) < 20 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
+        || posBall.getDistanceTo(posGoal) < 40){
             soc = directPass(al1, PASS_NORMAL);
-            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(soc);   
         }
-        else if(posBall.getDistanceTo(al2) < 5.0 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))){
+        else if(posBall.getDistanceTo(al2) < 20 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
+        || posBall.getDistanceTo(posGoal) < 40){
             soc = directPass(al2, PASS_NORMAL);
             ACT->putCommandInQueue(soc);
         }
-        else if(posBall.getDistanceTo(posGoal) < 15){
+        else{
             Line target_raycast = Line::makeLineFromTwoPoints(posBall, posGoal);
           soc = dribble(target_raycast.getBCoefficient(), DRIBBLE_FAST);
-          ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
           ACT->putCommandInQueue(soc);
         }
-        else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 6)) < 2) {
-            soc = directPass(al1, PASS_FAST);
-            ACT->putCommandInQueue(soc);
-        }
-        else{
-            soc = directPass(al2, PASS_FAST);
-            ACT->putCommandInQueue(soc);
-        }
-      }
     }
+  }
   }
   else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
               == WM->getAgentObjectType()  && !WM->isDeadBallThem() )
