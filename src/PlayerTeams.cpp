@@ -323,19 +323,23 @@ SoccerCommand Player::erus_midfielder(  )
           }
         }
         else if(posBall.getDistanceTo(al1) < 20 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
-        || posBall.getDistanceTo(posGoal) < 40){
-            soc = directPass(al1, PASS_NORMAL);
-            ACT->putCommandInQueue(soc);
+        && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,Circle (al1, 8)) < 2)){
+            soc = directPass(al1, PASS_FAST);
+            ACT->putCommandInQueue(soc);   
         }
         else if(posBall.getDistanceTo(al2) < 20 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
-        || posBall.getDistanceTo(posGoal) < 40){
-            soc = directPass(al2, PASS_NORMAL);
+        && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 8)) < 2)){
+            soc = directPass(al2, PASS_FAST);
             ACT->putCommandInQueue(soc);
         }
-        else{
+        else if(posBall.getDistanceTo(posGoal) < 40){
             Line target_raycast = Line::makeLineFromTwoPoints(posBall, posGoal);
           soc = dribble(target_raycast.getBCoefficient(), DRIBBLE_FAST);
           ACT->putCommandInQueue(soc);
+        }
+        else{
+            soc = directPass(al1, PASS_FAST);
+            ACT->putCommandInQueue(soc);
         }
     }
   }
