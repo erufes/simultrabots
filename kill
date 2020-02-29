@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PLAYER="erus_player"
+COACH="erus_coach"
+
+killall -TERM ${PLAYER}
+killall -TERM ${COACH}
+
+sleep 2
+
+killall -KILL ${PLAYER}
+killall -KILL ${COACH}
+
+echo "Killed all instances of ERUS team"
