@@ -600,43 +600,43 @@ SoccerCommand Player::erus_defense(  )
     {
         if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING))
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING))
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) )
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING))
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER))
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER))
         {
-            soc = directPass(prox2, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else
         {
-            soc = directPass(prox, PASS_NORMAL);
+            soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
