@@ -325,7 +325,7 @@ SoccerCommand Player::erus_midfielder(  )
         else if(posBall.getDistanceTo(al1) < 20 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         || posBall.getDistanceTo(posGoal) < 40){
             soc = directPass(al1, PASS_NORMAL);
-            ACT->putCommandInQueue(soc);   
+            ACT->putCommandInQueue(soc);
         }
         else if(posBall.getDistanceTo(al2) < 20 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         || posBall.getDistanceTo(posGoal) < 40){
@@ -591,7 +591,7 @@ SoccerCommand Player::erus_defense(  )
     }
     else if(  WM->isBallKickable())
     {
-        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING))
+        /*if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && )
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
@@ -627,13 +627,13 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else
+        else if()
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        /*else {
+        else {
             VecPosition posGoal(PITCH_LENGTH / 2.0,
                                 (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
 
@@ -642,6 +642,21 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
             Log.log(100, "kick ball");
         }*/
+        if ((formations->getPlayerType(prox) == PT_MIDFIELDER_CENTER || formations->getPlayerType(prox) == PT_MIDFIELDER_WING || formations->getPlayerType(prox) ==PT_DEFENDER_SWEEPER))
+        {
+            soc = directPass(pos, PASS_NORMAL);
+            ACT->putCommandInQueue( soc );
+            ACT->putCommandInQueue(turnNeckToObject( OBJECT_BALL, soc ));
+        }
+        else {
+            VecPosition posGoal(PITCH_LENGTH / 2.0,
+                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
+
+            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            Log.log(100, "kick ball");
+        }
     }
     else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
     == WM->getAgentObjectType()  && !WM->isDeadBallThem() )
