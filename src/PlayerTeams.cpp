@@ -248,7 +248,7 @@ SoccerCommand Player::erus_midfielder(  )
     {
       if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al1, 2.0 )) < 2){
         if(WM -> getPlayerType(ally1) == PT_MIDFIELDER_CENTER || WM -> getPlayerType(ally1) == PT_MIDFIELDER_WING){
-            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
             }
             else{
@@ -260,7 +260,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
       else if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 2.0)) < 2){
         if((WM -> getPlayerType(ally2) == PT_MIDFIELDER_CENTER || WM ->getPlayerType(ally2) == PT_MIDFIELDER_WING)){
-            if(WM->getConfidence(ally2) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally2) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally2, soc));
             }
             else{
@@ -274,7 +274,7 @@ SoccerCommand Player::erus_midfielder(  )
     else{
       if(WM -> getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(previous, 2.0)) >= 2){
         if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
-            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
             ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
             }
             else{
@@ -283,7 +283,7 @@ SoccerCommand Player::erus_midfielder(  )
             }
         }
         else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
-            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
             ACT->putCommandInQueue(turnNeckToObject(ally2, soc));
             }
             else{
@@ -294,7 +294,7 @@ SoccerCommand Player::erus_midfielder(  )
       }
       else{
         if((posBall.getDistanceTo(opp1) < 2.5) || (posBall.getDistanceTo(opp2) < 2.5)){
-            if(WM->getConfidence(prev) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(prev) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(prev, soc));
             }
             else{
@@ -304,7 +304,7 @@ SoccerCommand Player::erus_midfielder(  )
         }
         else if( WM-> getTimeSinceLastCatch() > 0 && WM->getTimeSinceLastCatch() < 50){
           if((WM -> getPlayerType(ally1) == PT_ATTACKER || WM -> getPlayerType(ally1) == PT_ATTACKER_WING) && ally1!=prev){
-            if(WM->getConfidence(ally1) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
             }
             else{
@@ -313,7 +313,7 @@ SoccerCommand Player::erus_midfielder(  )
             }
           }
           else if((WM -> getPlayerType(ally2) == PT_ATTACKER || WM -> getPlayerType(ally2) == PT_ATTACKER_WING) && ally2!=prev){
-            if(WM->getConfidence(ally2) < PS->getPlayerConfThr( )){
+            if(WM->getConfidence(ally2) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
             }
             else{
@@ -324,13 +324,23 @@ SoccerCommand Player::erus_midfielder(  )
         }
         else if(posBall.getDistanceTo(al1) < 20 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,Circle (al1, 8)) < 2)){
-            soc = directPass(al1, PASS_FAST);
-            ACT->putCommandInQueue(soc);   
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                soc = directPass(al1, PASS_FAST);
+                ACT->putCommandInQueue(soc);
+            }   
         }
         else if(posBall.getDistanceTo(al2) < 20 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 8)) < 2)){
-            soc = directPass(al2, PASS_FAST);
-            ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally2) < PS->getPlayerHighConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                soc = directPass(al2, PASS_FAST);
+                ACT->putCommandInQueue(soc);
+            }
         }
         else if(posBall.getDistanceTo(posGoal) < 40){
             Line target_raycast = Line::makeLineFromTwoPoints(posBall, posGoal);
@@ -338,8 +348,13 @@ SoccerCommand Player::erus_midfielder(  )
           ACT->putCommandInQueue(soc);
         }
         else{
-            soc = directPass(al1, PASS_FAST);
-            ACT->putCommandInQueue(soc);
+            if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
+                ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
+            }
+            else{
+                soc = directPass(al1, PASS_FAST);
+                ACT->putCommandInQueue(soc);
+            }
         }
     }
   }
