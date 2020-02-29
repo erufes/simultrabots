@@ -1,4 +1,4 @@
-#!/bin/tcsh
+#!/bin/bash
 # instalar yum
 # sudo apt install tcsh
 
@@ -17,63 +17,58 @@
 # Example: start.sh 9 10 remote UvA players 9-10 on host remote and name 'UvA'
 # Example: start.sh 0               start coach on default host 
 
-set wait  = 0
-set host  = "localhost"
-set team  = "ERUS" 
-set dir   = "src"
-set prog  = "${dir}/erus_player"
-set coach = "${dir}/erus_coach"
-set pconf = "${dir}/player.conf"
-set fconf = "${dir}/formations.conf"
+wait=0
+host="localhost"
+team="ERUS" 
+dir="src"
+prog="${dir}/erus_player"
+coach="${dir}/erus_coach"
+pconf="${dir}/player.conf"
+fconf="${dir}/formations.conf"
+loglevel="100"
 
 echo "*****************************************************************"
 echo "* ERUS ULTRABOTS 2020 - Universidade Federal do Espírito Santo  *"
-echo "* Base code version                                             *"
-echo "* Created by:           Jelle Kok                               *"
-echo "* Research Coordinator: Nikos Vlassis                           *" 
-echo "* Team Coordinator:     Frans Groen                             *"
-echo "* Copyright 2000-2001.  Jelle Kok and Remco de Boer             *"
-echo "* Copyright 2001-2002.  Jelle Kok                               *"
-echo "* Copyright 2002-2003.  Jelle Kok                               *"
-echo "* Copyright 2007-2008.  Jelle Kok and Mahdi Nami Damirchi       *"
-echo "* Modified in 2020      ERUS - Equipe de Robótica da UFES       *"
-echo "* All rights reserved.                                          *"
+echo "*                                                               *"
+echo "* Código original                                               *"
+echo "*                       Jelle Kok                               *"
+echo "*                       Nikos Vlassis                           *" 
+echo "*                       Frans Groen                             *"
+echo "*                       Remco de Boer                           *"
+echo "*                       Mahdi Nami Damirchi                     *"
+echo "*                                                               *"
+echo "* Atualizações para IRONCup 2020                                *"
+echo "*                       ERUS - Equipe de Robótica da UFES       *"
+echo "* Licenciado pela GPLv2                                         *"
 echo "*****************************************************************"
 
-#first check if the last two supplied arguments are no numbers and represent
-#<host-name> or <host-name> <team-name>
-if( $#argv > 0 && ($argv[$#argv] !~ [0123456789]* || $argv[$#argv] =~ *.* ) ) then
-  @ second_last = $#argv - 1  
-  if( $#argv > 1 && ($argv[$second_last] !~ [0123456789]* || $argv[$second_last] =~ *.* ) ) then
-      set host = $argv[$second_last]
-      set team = $argv[$#argv]
-  else
-      set host = $argv[$#argv]
-  endif
-endif
+# Parsing de argumentos
 
-#then if first argument is a number, start only the players with the numbers
-#as supplied on the prompt, otherwise start all players.
-if( $1 =~ [0123456789]* && $1 !~ *.* ) then
-  echo "$argv[$#argv]"
-    echo "$1"
-  foreach arg ($argv)
-    if( $arg =~ [123456789]* && $arg !~ *.*) then
-      ${prog} -num ${arg} -host ${host} -team ${team} -f ${fconf} -c ${pconf} -o ./logs/log_${arg} &
-      sleep $wait
-    else if( $arg =~ [0]* ) then
-      sleep 1
-      ${coach} -host ${host} -team ${team} -f ${fconf} &
-    endif
-  end
-else
-  set i = 1
-  while ( ${i} <12 )
-    ${prog} -log 100 -number ${i} -host ${host} -team ${team}  -f ${fconf} -c ${pconf} -o ./logs/log_${i} &
-    sleep $wait
-    @ i++
-  end
-  sleep 1
-  ${coach} -host ${host} -team ${team} -f ${fconf}  &
-endif
+
+# Instancia os jogadores
+for i in {1..11}
+do
+	echo "Instanciando player ${i}..." 
+	${prog} -log ${loglevel} -number ${i} -host ${host} -team ${team} -f ${fconf} -c ${pconf} -o ./logs/log_${i}.txt &
+	sleep ${wait}
+	echo "OK!"
+done
+sleep 1
+
+echo "Todos os players instanciados"
+
+echo "Instanciando coach..."
+${coach} -host ${host} -team ${team} -f ${fconf} &
+echo "OK!"
+
+echo "Tudo ok no time"
+
+# set i = 1
+# while ( ${i} <12 )
+#   ${prog} -log 100 -number ${i} -host ${host} -team ${team}  -f ${fconf} -c ${pconf} -o ./logs/log_${i} &
+#   sleep $wait
+#   @ i++
+# end
+# sleep 1
+# ${coach} -host ${host} -team ${team} -f ${fconf}  &
 
