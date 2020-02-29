@@ -322,7 +322,7 @@ SoccerCommand Player::erus_midfielder(  )
             }
           }
         }
-        else if(posBall.getDistanceTo(al1) < 20 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
+        else if(posBall.getDistanceTo(al1) < 30 && (al1.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS,Circle (al1, 8)) < 2)){
             if(WM->getConfidence(ally1) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
@@ -332,7 +332,7 @@ SoccerCommand Player::erus_midfielder(  )
                 ACT->putCommandInQueue(soc);
             }   
         }
-        else if(posBall.getDistanceTo(al2) < 20 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
+        else if(posBall.getDistanceTo(al2) < 30 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 8)) < 2)){
             if(WM->getConfidence(ally2) < PS->getPlayerHighConfThr( )){
                 ACT->putCommandInQueue(turnNeckToObject(ally1, soc));
