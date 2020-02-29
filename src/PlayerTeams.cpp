@@ -628,7 +628,7 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((formations->getPlayerType(prox2) == PT_ATTACKER || formations->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
+        else if ((formations->getPlayerType(prox2) == PT_ATTACKER || formations->getPlayerType(prox2) == PT_ATTACKER_WING) && (int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0))
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
