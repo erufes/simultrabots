@@ -610,62 +610,53 @@ SoccerCommand Player::erus_defense(  )
     }
     else if(  WM->isBallKickable())
     {
-        /*if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && )
+        if ((formations->getPlayerType(prox) == PT_MIDFIELDER_CENTER || formations->getPlayerType(prox) == PT_MIDFIELDER_WING) && int1.getX() != 0.0 && int1.getY() != 0.0 && int2.getX() != 0.0 && int2.getY() != 0.0)
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING))
+        else if ((formations->getPlayerType(prox) == PT_ATTACKER || formations->getPlayerType(prox) == PT_ATTACKER_WING) && int1.getX() != 0.0 && int1.getY() != 0.0 && int2.getX() != 0.0 && int2.getY() != 0.0)
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) )
+        else if ((formations->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || formations->getPlayerType(prox2) == PT_MIDFIELDER_WING)  && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING))
+        else if ((formations->getPlayerType(prox2) == PT_ATTACKER || formations->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER))
+        else if ((formations->getPlayerType(prox) == PT_DEFENDER_SWEEPER) && int1.getX() != 0.0 && int1.getY() != 0.0 && int2.getX() != 0.0 && int2.getY() != 0.0)
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER))
+        else if ((formations->getPlayerType(prox2) == PT_DEFENDER_SWEEPER) && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if()
+        else if(int1.getX() != 0.0 && int1.getY() != 0.0 && int2.getX() != 0.0 && int2.getY() != 0.0)
         {
             soc = directPass(pos, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else {
-            VecPosition posGoal(PITCH_LENGTH / 2.0,
-                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
-
-            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
-            ACT->putCommandInQueue(soc);
-            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
-            Log.log(100, "kick ball");
-        }*/
-        if ((formations->getPlayerType(prox) == PT_MIDFIELDER_CENTER || formations->getPlayerType(prox) == PT_MIDFIELDER_WING || formations->getPlayerType(prox) ==PT_DEFENDER_SWEEPER))
+        else if(int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
         {
-            soc = directPass(pos, PASS_NORMAL);
+            soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
-            ACT->putCommandInQueue(turnNeckToObject( OBJECT_BALL, soc ));
+            ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else {
             VecPosition posGoal(PITCH_LENGTH / 2.0,
