@@ -5,6 +5,8 @@ COACH_FILE=src/erus_player
 
 START_FILE=start.sh
 
+CONF_FILES=src/*.conf
+
 if [ ! -f "$PLAYER_FILE" ]; then 
 	echo "Binário do jogador não encontrado!"
 	exit 1
@@ -21,5 +23,5 @@ if [ ! -f "$START_FILE" ]; then
 fi
 
 echo "Preparando arquivo compactado..."
-tar -zcvf simultrabots.tar.gz start.sh src/erus_coach src/erus_player
+tar -zcvf simultrabots.tar.gz start.sh src/erus_coach src/erus_player ${CONF_FILES}
 echo "Pronto! Agora é só enviar o arquivo \"simultrabots.tar.gz\"!"
