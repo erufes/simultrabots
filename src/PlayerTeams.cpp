@@ -405,7 +405,6 @@ SoccerCommand Player::erus_midfielder(  )
 }
 
 
-
 /*!This method is a simple goalie based on the goalie of the simple Team of
    FC Portugal. It defines a rectangle in its penalty area and moves to the
    position on this rectangle where the ball intersects if you make a line
@@ -547,10 +546,10 @@ SoccerCommand Player::erus_defense(  )
   VecPosition   pos = WM->getGlobalPosition(prox);
   VecPosition   pos2 = WM->getGlobalPosition(prox2);
 
-  Line          lineTeam = Line::makeLineFromTwoPoints( WM->getBallPos(),pos);
-  Line          lineTeam2 = Line::makeLineFromTwoPoints( WM->getBallPos(),pos2);
-  Line          lineEnemy = Line::makeLineFromTwoPoints( WM->getBallPos(),enemy);
-  Line          lineEnemy2 = Line::makeLineFromTwoPoints( WM->getBallPos(),enemy2);
+  Line          lineTeam = Line::makeLineFromTwoPoints( posAgent,pos);
+  Line          lineTeam2 = Line::makeLineFromTwoPoints( posAgent,pos2);
+  Line          lineEnemy = Line::makeLineFromTwoPoints( posAgent,enemy);
+  Line          lineEnemy2 = Line::makeLineFromTwoPoints( posAgent,enemy2);
 
   VecPosition   int1 = lineTeam.getIntersection( lineEnemy );
   VecPosition   int2 = lineTeam.getIntersection( lineEnemy2 );
@@ -599,55 +598,57 @@ SoccerCommand Player::erus_defense(  )
     }
     else if(  WM->isBallKickable())
     {
-        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
+        if ((WM->getPlayerType(prox) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox) == PT_MIDFIELDER_WING))
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
+        else if ((WM->getPlayerType(prox) == PT_ATTACKER || WM->getPlayerType(prox) == PT_ATTACKER_WING))
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_MIDFIELDER_CENTER || WM->getPlayerType(prox2) == PT_MIDFIELDER_WING) )
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_ATTACKER || WM->getPlayerType(prox2) == PT_ATTACKER_WING))
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER) && int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
+        else if ((WM->getPlayerType(prox) == PT_DEFENDER_SWEEPER))
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER) && int3.getX()!=0.0 && int3.getY()!=0.0 && int4.getX()!=0.0 && int4.getY()!=0.0 )
+        else if ((WM->getPlayerType(prox2) == PT_DEFENDER_SWEEPER))
         {
             soc = directPass(prox2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if(int1.getX()!=0.0 && int1.getY()!=0.0 && int2.getX()!=0.0 && int2.getY()!=0.0 )
+        else
         {
             soc = directPass(prox, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else {
-            VecPosition posGoal( PITCH_LENGTH/2.0,
-                                 (-1 + 2*(WM->getCurrentCycle()%2)) *
-                                 0.4 * SS->getGoalWidth() );
-            soc = kickTo( posGoal, SS->getBallSpeedMax() ); // kick maximal
-            Log.log( 100, "take kick off" );
-        }
+        /*else {
+            VecPosition posGoal(PITCH_LENGTH / 2.0,
+                                (-1 + 2 * (WM->getCurrentCycle() % 2)) * 0.4 * SS->getGoalWidth());
+
+            soc = kickTo(posGoal, SS->getBallSpeedMax()); // kick maxima
+            ACT->putCommandInQueue(soc);
+            ACT->putCommandInQueue(turnNeckToObject(OBJECT_BALL, soc));
+            Log.log(100, "kick ball");
+        }*/
     }
     else if( WM->getFastestInSetTo( OBJECT_SET_TEAMMATES, OBJECT_BALL, &iTmp )
     == WM->getAgentObjectType()  && !WM->isDeadBallThem() )
@@ -704,7 +705,6 @@ SoccerCommand Player::erus_defense(  )
    }
   return soc;
 }
-
 
 SoccerCommand Player::erus_attacker() {
 
