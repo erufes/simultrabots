@@ -330,7 +330,7 @@ SoccerCommand Player::erus_midfielder(  )
             else{
                 soc = directPass(al1, PASS_FAST);
                 ACT->putCommandInQueue(soc);
-            }   
+            }
         }
         else if(posBall.getDistanceTo(al2) < 30 && (al2.getDistanceTo(posGoal) < posBall.getDistanceTo(posGoal))
         && (WM->getNrInSetInCircle(OBJECT_SET_OPPONENTS, Circle(al2, 8)) < 2)){
@@ -628,7 +628,7 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue( soc );
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
-        else if ((formations->getPlayerType(prox2) == PT_ATTACKER || formations->getPlayerType(prox2) == PT_ATTACKER_WING) && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
+        else if ((formations->getPlayerType(prox2) == PT_ATTACKER || formations->getPlayerType(prox2) == PT_ATTACKER_WING) && (int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0))
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
@@ -641,18 +641,6 @@ SoccerCommand Player::erus_defense(  )
             ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
         }
         else if ((formations->getPlayerType(prox2) == PT_DEFENDER_SWEEPER) && int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
-        {
-            soc = directPass(pos2, PASS_NORMAL);
-            ACT->putCommandInQueue( soc );
-            ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
-        }
-        else if(int1.getX() != 0.0 && int1.getY() != 0.0 && int2.getX() != 0.0 && int2.getY() != 0.0)
-        {
-            soc = directPass(pos, PASS_NORMAL);
-            ACT->putCommandInQueue( soc );
-            ACT->putCommandInQueue( turnNeckToObject( OBJECT_BALL, soc ) );
-        }
-        else if(int3.getX() != 0.0 && int3.getY() != 0.0 && int4.getX() != 0.0 && int4.getY() != 0.0)
         {
             soc = directPass(pos2, PASS_NORMAL);
             ACT->putCommandInQueue( soc );
